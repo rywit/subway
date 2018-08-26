@@ -3,18 +3,17 @@ from Subway.Segment import *
 
 class SubwayRide:
 
-    def __init__(self, init_stop=None, init_time_ts=None, segments=None):
-        self.stations = set()
-
-        if segments is not None:
+    def __init__(self, segments):
+        if isinstance(segments, Segment):
+            self.segments = [segments]
+        else:
             self.segments = segments
 
-            for seg in segments:
-                self.stations.add(seg.get_from_station())
-                self.stations.add(seg.get_to_station())
-        else:
-            self.segments = [StartingSegment(init_stop, init_time_ts)]
-            self.stations.add(init_stop.get_station())
+        self.stations = set()
+
+        for seg in self.segments:
+            self.stations.add(seg.get_from_station())
+            self.stations.add(seg.get_to_station())
 
     def get_segments(self):
         return self.segments
@@ -24,7 +23,7 @@ class SubwayRide:
 
     def get_subset(self, n):
         segments = self.get_segments()[:n]
-        return SubwayRide(segments=segments)
+        return SubwayRide(segments)
 
     def get_ride_segments(self):
         return [seg for seg in self.get_segments() if isinstance(seg, RideSegment)]

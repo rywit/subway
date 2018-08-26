@@ -116,7 +116,7 @@ class DataLoader:
 
         # Read data from disk and then sort by trip and stop sequence
         print("Loading stop time data from '%s'" % full_path)
-        data = pd.read_csv(full_path).query('trip_id.str.contains("Weekday")').sort_values(by=["trip_id", "stop_sequence"])
+        data = pd.read_csv(full_path).sort_values(by=["trip_id", "stop_sequence"])
 
         stop_times = []
 
@@ -215,7 +215,7 @@ class DataLoader:
         trips = DataLoader.__load_trips(path, "trips.txt", routes)
 
         # Load stop time data
-        DataLoader.__load_stop_times(path, "stop_times.txt", trips, stops)
+        DataLoader.__load_stop_times(path, "stop_times_weekday.txt", trips, stops)
 
         DataLoader.__link_stops(trips)
 
@@ -246,3 +246,4 @@ class DataLoader:
 
     def get_timetable(self):
         return self.timetable
+

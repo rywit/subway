@@ -1,4 +1,4 @@
-from Subway.Segment import RideSegment
+from Subway.Segment import RideTripSegment
 
 
 class SubwayTrip:
@@ -10,7 +10,7 @@ class SubwayTrip:
         self.trip_headsign = trip_headsign
         self.direction_id = direction_id
         self.stop_times = []
-        self.segments = []
+        self.segments = {}
 
     def get_route(self):
         return self.route
@@ -34,26 +34,24 @@ class SubwayTrip:
             from_stop_time = self.stop_times[-2]
             to_stop_time = self.stop_times[-1]
 
-            segment = RideSegment(from_stop_time.get_stop(), to_stop_time.get_stop(),
-                                  from_stop_time.get_departure_ts(), to_stop_time.get_arrival_ts(), self)
+            from_stop = from_stop_time.get_stop()
+            to_stop = to_stop_time.get_stop()
 
-            self.segments.append(segment)
+            segment = RideTripSegment(from_stop, to_stop, from_stop_time.get_departure_ts(),
+                                      to_stop_time.get_arrival_ts(), self)
+
+            self.segments[from_stop.get_id()] = segment
 
         return self
 
     def get_stop_times(self):
         return self.stop_times
 
-    def get_segments(self):
-        return self.segments
-
     def get_segment(self, from_stop):
-        for segment in self.segments:
-            if segment.get_from_stop() == from_stop:
-                return segment
+        return self.segments[from_stop.get_id()]
 
     def __str__(self):
-        return "%s (%s) - %s" % (self.get_route(), self.get_trip_headsign(), self.get_trip_id())
+        return "[%s: %s] %s" % (self.get_route(), self.get_trip_headsign(), self.get_trip_id())
 
     def __eq__(self, other):
         return self.get_trip_id() == other.get_trip_id()

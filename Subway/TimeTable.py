@@ -1,4 +1,4 @@
-from Subway.Segment import TransferSegment
+from Subway.Segment import *
 
 
 class TimeTable:
@@ -80,7 +80,7 @@ class TimeTable:
                 transfer_time = transfer.get_min_time()
 
                 # Build a new transfer segment
-                transfer_segment = TransferSegment(from_stop, to_stop, time_ts, time_ts + transfer_time)
+                transfer_segment = TransferTripSegment(from_stop, to_stop, time_ts, time_ts + transfer_time)
 
                 # Add transfer segment to our list of available segments
                 transfer_segments.append(transfer_segment)

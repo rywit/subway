@@ -23,6 +23,9 @@ class SubwayStation:
     def get_longitude(self):
         return self.lon
 
+    def get_borough(self):
+        return self.borough
+
     def add_stop(self, stop):
         self.stops.append(stop)
         return self
