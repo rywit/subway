@@ -113,7 +113,10 @@ def main():
             print("Running test from %s" % starting_stop)
             longest = run_test(starting_stop, chooser)
 
-            if longest_ride is None or longest.get_num_stations() > longest_ride.get_num_stations():
+            if longest_ride is None:
+                longest_ride = longest
+
+            if longest.get_num_stations() > longest_ride.get_num_stations():
                 longest_ride = longest
 
     print("\nSummary:\n")

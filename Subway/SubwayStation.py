@@ -9,6 +9,7 @@ class SubwayStation:
         self.structure = structure
         self.line = line
         self.stops = []
+        self.distances = {}
 
     def get_id(self):
         return self.station_id
@@ -35,6 +36,25 @@ class SubwayStation:
     def get_stops(self):
         return self.stops
 
+    def get_connecting_stations(self):
+        stations = set()
+
+        for stop in self.get_stops():
+            for conn in stop.get_connections():
+                stations.add(conn.get_to_station())
+
+            for trans in stop.get_station_transfers():
+                stations.add(trans.get_to_station())
+
+        return stations
+
+    def calc_distances(self):
+        self.distances = SubwayStation.calc_station_distances({self})
+        return self
+
+    def get_distance(self, to_station):
+        return self.distances[to_station]
+
     def __eq__(self, other):
         return self.get_id() == other.get_id()
 
@@ -43,3 +63,26 @@ class SubwayStation:
 
     def __hash__(self):
         return hash(self.get_id())
+
+    @staticmethod
+    def calc_station_distances(stations, depth=0, distances=None):
+
+        if distances is None:
+            distances = {}
+
+        to_visit = set()
+
+        # Set the distance for each of the stations
+        for station in stations:
+            distances[station] = depth
+
+        # Pull out the neighbors of each of the stations (that we haven't visited yet)
+        for station in stations:
+            for neighbor in station.get_connecting_stations():
+                if neighbor not in distances:
+                    to_visit.add(neighbor)
+
+        if len(to_visit) > 0:
+            SubwayStation.calc_station_distances(to_visit, depth + 1, distances)
+
+        return distances

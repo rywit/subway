@@ -205,6 +205,11 @@ class DataLoader:
 
                 from_stop.add_connection(to_stop, route)
 
+    @staticmethod
+    def __calc_station_distances(stations):
+        for station in stations:
+            station.calc_distances()
+
     def __load(self, path):
         # Load route data
         routes = DataLoader.__load_routes(path, "routes.txt")
@@ -212,19 +217,22 @@ class DataLoader:
         stations, stop_map = DataLoader.__load_stations(path, "stations.txt")
 
         # Load station data
-        stops = DataLoader.__load_stops(path, "stops.txt", stations, stop_map)
+        stops = self.__load_stops(path, "stops.txt", stations, stop_map)
 
         # Load trip dada
-        trips = DataLoader.__load_trips(path, "trips.txt", routes)
+        trips = self.__load_trips(path, "trips.txt", routes)
 
         # Load stop time data
-        DataLoader.__load_stop_times(path, "stop_times_weekday.txt", trips, stops)
+        self.__load_stop_times(path, "stop_times_weekday.txt", trips, stops)
 
         # Build connection data
-        DataLoader.__link_stops(trips)
+        self.__link_stops(trips)
 
         # Load transfer data
-        DataLoader.__load_transfers(path, "transfers.txt", stations, stop_map)
+        self.__load_transfers(path, "transfers.txt", stations, stop_map)
+
+        # Calculate distance between pairs of stations
+        self.__calc_station_distances(stations.values())
 
         # Load time table to look up available segments
         timetable = TimeTable(trips)
