@@ -3,7 +3,7 @@ from Subway.SubwayStation import SubwayStation
 from Subway.SubwayStop import SubwayStop
 from Subway.SubwayStopTime import SubwayStopTime
 from Subway.SubwayTrip import SubwayTrip
-from Subway.SubwayTransfer import SubwayTransfer
+from Subway.Transfer import *
 from Subway.SubwayRide import SubwayRide
 from Subway.TimeTable import TimeTable
 from Subway.Segment import Segment

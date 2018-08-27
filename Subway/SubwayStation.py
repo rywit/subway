@@ -9,7 +9,6 @@ class SubwayStation:
         self.structure = structure
         self.line = line
         self.stops = []
-        self.transfers = []
 
     def get_id(self):
         return self.station_id
@@ -26,19 +25,15 @@ class SubwayStation:
     def get_borough(self):
         return self.borough
 
+    def get_structure(self):
+        return self.structure
+
     def add_stop(self, stop):
         self.stops.append(stop)
         return self
 
     def get_stops(self):
         return self.stops
-
-    def add_transfer(self, transfer):
-        self.transfers.append(transfer)
-        return self
-
-    def get_transfers(self):
-        return self.transfers
 
     def __eq__(self, other):
         return self.get_id() == other.get_id()

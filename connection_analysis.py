@@ -1,4 +1,5 @@
 from Subway import *
+import random
 
 
 def run_simulation(ride, chooser):
@@ -64,33 +65,61 @@ def run_test(stop, chooser):
     return longest_ride
 
 
+def get_valid_stations(stops):
+
+    brooklyn_stations = set()
+
+    for stop in stops:
+        if stop.get_station().get_structure() == "Open Cut":
+            brooklyn_stations.add(stop.get_station())
+
+    return brooklyn_stations
+
+
+def get_random_stop(stations):
+    stops = []
+
+    for station in stations:
+        for stop in station.get_stops():
+            stops.append(stop)
+
+    return stops[random.randint(0, len(stops) - 1)]
+
+
 def main():
 
     # Load the data from disk
     loader = DataLoader("data")
 
-    far_rockaway = "H11N"
-    # pelham_bay = "601S"
+    # Get the list of all subway stops
+    all_stops = loader.get_stops().values()
 
-    # Start each simulation at this station
-    stop = loader.get_stops()[far_rockaway]
-    chooser = UniqueConnectionChooser()
+    # pull out Brooklyn stops
+    valid_stations = get_valid_stations(all_stops)
+
+    # Get a random starting stop
+    starting_stop = get_random_stop(valid_stations)
+    print("Starting at %s" % starting_stop)
+
+    # Build a route chooser
+    chooser = UniqueConnectionChooser(valid_stations)
 
     # Run one simulation
-    longest_ride = run_test(stop, chooser)
+    longest_ride = None
 
     # Run more
-    for i in range(10):
-        print("Running test %d" % i)
-        longest = run_test(stop, chooser)
+    for station in valid_stations:
+        for starting_stop in station.get_stops():
+            print("Running test from %s" % starting_stop)
+            longest = run_test(starting_stop, chooser)
 
-        if longest.get_num_stations() > longest_ride.get_num_stations():
-            longest_ride = longest
-
-    print("\nDistinct Stations (%d):\n" % longest_ride.get_num_stations())
+            if longest_ride is None or longest.get_num_stations() > longest_ride.get_num_stations():
+                longest_ride = longest
 
     print("\nSummary:\n")
     print("\n".join(map(str, longest_ride.get_segments())))
+
+    print("\nDistinct Stations: %d of %d" % (longest_ride.get_num_stations(), len(valid_stations)))
 
 
 if __name__ == "__main__":

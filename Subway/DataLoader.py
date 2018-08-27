@@ -151,40 +151,44 @@ class DataLoader:
         print("Loading transfer data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
-        transfers = []
-
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
 
             # Pull out the GTFS station ID for the two stations in the transfer
             from_stop_id = row["from_stop_id"]
             to_stop_id = row["to_stop_id"]
+            transfer_type = row["transfer_type"]
+            min_transfer_time = row["min_transfer_time"]
 
             from_station = stations[stop_map[from_stop_id]]
             to_station = stations[stop_map[to_stop_id]]
 
-            # Build a transfer object
-            transfer = SubwayTransfer(from_station, to_station, row["transfer_type"], row["min_transfer_time"])
+            for from_stop in from_station.get_stops():
+                for to_stop in to_station.get_stops():
 
-            # Add transfer to the "from" station
-            from_station.add_transfer(transfer)
+                    # Do not add transfers from a stop to itself
+                    if from_stop == to_stop:
+                        continue
 
+                    from_stop.add_transfer(to_stop, transfer_type, min_transfer_time)
+
+        # Add missing stop transfers
         for station in stations.values():
-            if len(station.get_transfers()) == 0:
-                print("Adding self-transfer at %s" % station)
-                station.add_transfer(SubwayTransfer(station, station, 2, 180))
+            for from_stop in station.get_stops():
+                if len(from_stop.get_stop_transfers()) == 0:
+                    for to_stop in station.get_stops():
+                        if from_stop != to_stop:
+                            print("Adding self-transfer at %s" % station)
+                            from_stop.add_transfer(to_stop, 2, 180)
 
-        # Manually add transfer at South Ferry
+        # Manually add transfer at South Ferry to Whitehall (and vice-versa)
         south_ferry = stations[stop_map["142"]]
         whitehall = stations[stop_map["R27"]]
 
-        # South Ferry to Whitehall
-        south_ferry.add_transfer(SubwayTransfer(south_ferry, whitehall, 2, 120))
-
-        # Whitehall to South Ferry
-        whitehall.add_transfer(SubwayTransfer(whitehall, south_ferry, 2, 120))
-
-        return transfers
+        for sf_stop in south_ferry.get_stops():
+            for wh_stop in whitehall.get_stops():
+                sf_stop.add_transfer(wh_stop, 2, 120)
+                wh_stop.add_transfer(sf_stop, 2, 120)
 
     @staticmethod
     def __link_stops(trips):
@@ -199,8 +203,7 @@ class DataLoader:
                 from_stop = stop_times[i-1].get_stop()
                 to_stop = stop_times[i].get_stop()
 
-                connection = StopConnection(from_stop, to_stop, route)
-                from_stop.add_connection(connection)
+                from_stop.add_connection(to_stop, route)
 
     def __load(self, path):
         # Load route data
@@ -217,6 +220,7 @@ class DataLoader:
         # Load stop time data
         DataLoader.__load_stop_times(path, "stop_times_weekday.txt", trips, stops)
 
+        # Build connection data
         DataLoader.__link_stops(trips)
 
         # Load transfer data
