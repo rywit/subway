@@ -12,7 +12,6 @@ def run_simulation(ride, chooser):
 
 
 def get_children(ride, num_children):
-    ride_len = ride.get_length()
 
     children = []
 
@@ -25,13 +24,11 @@ def get_children(ride, num_children):
 
 def run_evolution(ride, chooser):
 
-    children = get_children(ride, 10)
+    children = get_children(ride, 25)
 
     shortest_ride = ride
 
     for child in children:
-
-        # Run 100 simulations for this child
         child_ride = run_simulation(child, chooser)
 
         if child_ride.get_ride_length() < shortest_ride.get_ride_length():
@@ -47,19 +44,19 @@ def run_test(stop, chooser):
     # Seed our simulation
     shortest_ride = run_simulation(ride, chooser)
 
-    lengths = [shortest_ride.get_ride_length()]
+    lengths = [shortest_ride.get_length()]
 
     # Run 10 evolutions
-    for i in range(2):
+    for i in range(12):
         shortest_ride = run_evolution(shortest_ride, chooser)
         lengths.append(shortest_ride.get_ride_length())
 
     # Keep running if the length increases
-    # while lengths[-1] < lengths[-11]:
-    #     shortest_ride = run_evolution(shortest_ride, chooser)
-    #     lengths.append(shortest_ride.get_ride_length())
+    while lengths[-1] < lengths[-6]:
+        shortest_ride = run_evolution(shortest_ride, chooser)
+        lengths.append(shortest_ride.get_length())
 
-    print("Length: %d" % shortest_ride.get_ride_length())
+    print("Length: %d" % shortest_ride.get_length())
 
     return shortest_ride
 
@@ -69,33 +66,42 @@ def main():
     # Load the data from disk
     loader = DataLoader("data")
 
-    brooklyn_stations = set()
+    valid_stations = set()
 
     for stop in loader.get_stops().values():
-        if stop.get_station().get_borough() == "Bk":
-            brooklyn_stations.add(stop.get_station())
+        # if stop.get_station().get_borough() == "M":
+        valid_stations.add(stop.get_station())
 
-    bway_jct = "A51N"
-
-    # Start each simulation at this station
-    stop = loader.get_stops()[bway_jct]
-    chooser = AllStationChooser(brooklyn_stations)
+    chooser = VisitAllConnectionChooser(valid_stations, valid_stations)
 
     # Run one simulation
-    shortest_ride = run_test(stop, chooser)
+    shortest_ride = None
 
     # Run more
-    for i in range(10):
-        print("Running test %d" % i)
-        shortest = run_test(stop, chooser)
+    for station in valid_stations:
 
-        if shortest.get_ride_length() < shortest_ride.get_ride_length():
-            shortest_ride = shortest
+        # Only begin at a terminal stop
+        if not station.is_terminal():
+            continue
 
-    print("\nRide Length (%d):\n" % shortest_ride.get_ride_length())
+        for starting_stop in station.get_stops():
+
+            if starting_stop.is_terminal():
+                continue
+
+            print("Running test from %s" % starting_stop)
+            shortest = run_test(starting_stop, chooser)
+
+            if shortest_ride is None:
+                shortest_ride = shortest
+
+            if shortest.get_length() < shortest_ride.get_length():
+                shortest_ride = shortest
 
     print("\nSummary:\n")
     print("\n".join(map(str, shortest_ride.get_segments())))
+
+    print("\nDistinct Stations: %d of %d" % (shortest_ride.get_length(), len(valid_stations)))
 
 
 if __name__ == "__main__":

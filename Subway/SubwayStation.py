@@ -55,6 +55,14 @@ class SubwayStation:
     def get_distance(self, to_station):
         return self.distances[to_station]
 
+    def is_terminal(self):
+
+        for stop in self.get_stops():
+            if stop.is_terminal():
+                return True
+
+        return False
+
     def __eq__(self, other):
         return self.get_id() == other.get_id()
 

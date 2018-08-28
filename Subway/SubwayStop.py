@@ -46,6 +46,9 @@ class SubwayStop:
     def get_station_transfers(self):
         return self.station_transfers
 
+    def is_terminal(self):
+        return len(self.get_connections()) == 0
+
     def __eq__(self, other):
         return self.get_id() == other.get_id()
 
