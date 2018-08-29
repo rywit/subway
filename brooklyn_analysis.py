@@ -24,14 +24,14 @@ def get_children(ride, num_children):
 
 def run_evolution(ride, chooser):
 
-    children = get_children(ride, 25)
+    children = get_children(ride, 50)
 
     shortest_ride = ride
 
     for child in children:
         child_ride = run_simulation(child, chooser)
 
-        if child_ride.get_ride_length() < shortest_ride.get_ride_length():
+        if child_ride.get_ride_distance() < shortest_ride.get_ride_distance():
             shortest_ride = child_ride
 
     return shortest_ride
@@ -52,7 +52,7 @@ def run_test(stop, chooser):
         lengths.append(shortest_ride.get_ride_length())
 
     # Keep running if the length increases
-    while lengths[-1] < lengths[-6]:
+    while lengths[-1] < lengths[-11]:
         shortest_ride = run_evolution(shortest_ride, chooser)
         lengths.append(shortest_ride.get_length())
 
@@ -69,8 +69,8 @@ def main():
     valid_stations = set()
 
     for stop in loader.get_stops().values():
-        if stop.get_station().get_borough() == "Bk":
-            valid_stations.add(stop.get_station())
+        # if stop.get_station().get_borough() == "M":
+        valid_stations.add(stop.get_station())
 
     chooser = VisitAllConnectionChooser(valid_stations, valid_stations)
 
@@ -95,14 +95,16 @@ def main():
             if shortest_ride is None:
                 shortest_ride = shortest
 
-            if shortest.get_length() < shortest_ride.get_length():
+            if shortest.get_ride_distance() < shortest_ride.get_ride_distance():
                 shortest_ride = shortest
+
+    shortest_ride.simplify_ride()
 
     print("\nSummary:\n")
     print("\n".join(map(str, shortest_ride.get_segments())))
 
     print("\nDistinct Stations: %d of %d" % (shortest_ride.get_length(), len(valid_stations)))
-    print("Ride length: %.2f km" % shortest_ride.get_ride_distance())
+    print(shortest_ride.get_ride_summary())
 
 
 if __name__ == "__main__":

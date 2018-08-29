@@ -1,8 +1,7 @@
 class SubwayStation:
 
-    def __init__(self, station_id, complex_id, name, lat, lon, borough, structure, line, division):
+    def __init__(self, station_id, name, lat, lon, borough, structure, line, division):
         self.station_id = station_id
-        self.complex_id = complex_id
         self.name = name
         self.lat = lat
         self.lon = lon
@@ -10,14 +9,12 @@ class SubwayStation:
         self.structure = structure
         self.line = line
         self.division = division
+        self.station_complex = None
         self.stops = []
         self.distances = {}
 
     def get_id(self):
         return self.station_id
-
-    def get_complex_id(self):
-        return self.complex_id
 
     def get_name(self):
         return self.name
@@ -73,6 +70,13 @@ class SubwayStation:
                 return True
 
         return False
+
+    def set_station_complex(self, station_complex):
+        self.station_complex = station_complex
+        return self
+
+    def get_station_complex(self):
+        return self.station_complex
 
     def __eq__(self, other):
         return self.get_id() == other.get_id()

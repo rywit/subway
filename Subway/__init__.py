@@ -10,4 +10,5 @@ from Subway.Segment import Segment
 from Subway.StopConnection import StopConnection
 from Subway.ConnectionChooser import *
 from Subway.RouteChooser import *
+from Subway.StationComplex import StationComplex
 from Subway.DataLoader import DataLoader

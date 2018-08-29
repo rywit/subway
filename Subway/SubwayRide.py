@@ -28,6 +28,9 @@ class SubwayRide:
     def get_ride_segments(self):
         return [seg for seg in self.get_segments() if isinstance(seg, RideSegment)]
 
+    def get_transfer_segments(self):
+        return [seg for seg in self.get_segments() if isinstance(seg, TransferSegment)]
+
     def add_segment(self, segment):
         self.segments.append(segment)
         self.stations.add(segment.get_from_station())
@@ -64,11 +67,34 @@ class SubwayRide:
     def get_ride_length(self):
         return len(self.get_ride_segments())
 
+    def get_num_transfers(self):
+        return len(self.get_transfer_segments())
+
     def get_num_stations(self):
         return len(self.get_stations())
 
     def get_ride_distance(self):
         return sum([seg.get_distance() for seg in self.get_ride_segments()])
+
+    def get_ride_summary(self):
+        return "\n".join([
+            "Start: %s" % self.get_segments()[0].get_from_station(),
+            "End: %s" % self.get_segments()[-1].get_to_station(),
+            "Rides: %d" % self.get_ride_length(),
+            "Transfers: %d" % self.get_num_transfers(),
+            "Distance: %.2f km" % self.get_ride_distance()])
+
+    def simplify_ride(self):
+
+        segments = self.get_segments()
+
+        for i in reversed(range(len(segments)-1)):
+            segment1 = segments[i]
+            segment2 = segments[i+1]
+
+            if isinstance(segment1, TransferConnection) and isinstance(segment2, TransferConnection):
+                segments[i] = TransferConnection(segment1.get_from_stop(), segment2.get_to_stop())
+                del segments[i+1]
 
     def get_summary_segments(self):
 

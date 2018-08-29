@@ -44,22 +44,42 @@ class DataLoader:
 
         stations = {}
         stop_map = {}
+        complex_map = {}
 
         for idx, row in data.iterrows():
 
             station_id = str(row["station_id"])
             stop_id = row["gtfs_stop_id"]
+            complex_id = str(row["complex_id"])
 
-            stations[station_id] = SubwayStation(station_id, row["complex_id"], row["stop_name"],
-                                                 row["latitude"], row["longitude"], row["borough"],
-                                                 row["structure"], row["line"], row["division"])
+            station = SubwayStation(station_id, row["stop_name"],
+                                    row["latitude"], row["longitude"], row["borough"],
+                                    row["structure"], row["line"], row["division"])
 
+            stations[station_id] = station
             stop_map[stop_id] = station_id
+
+            complex_map.setdefault(complex_id, set()).add(station)
 
         # Manually add South Ferry Loop
         stop_map["140"] = "330"
 
-        return stations, stop_map
+        complexes = set()
+
+        # Build station complexes and link to stations
+        for complex_id, station_set in complex_map.items():
+
+            # Create new station complex, linking to underlying stations
+            station_complex = StationComplex(complex_id, station_set)
+
+            # Add complex to our final set of complexes
+            complexes.add(station_complex)
+
+            # Link station to complex
+            for station in station_set:
+                station.set_station_complex(station_complex)
+
+        return stations, complexes, stop_map
 
     @staticmethod
     def __load_stops(path, file_name, stations, stop_map):
@@ -152,7 +172,8 @@ class DataLoader:
             if len(from_stop.get_stop_transfers()) == 0:
                 for to_stop in station.get_stops():
                     if from_stop != to_stop:
-                        print("Adding stop transfer from %s to %s" % (from_stop.get_id(), to_stop.get_id()))
+                        print("Adding stop transfer from %s to %s (%s)" %
+                              (from_stop.get_id(), to_stop.get_id(), to_stop.get_station()))
                         from_stop.add_transfer(to_stop, 2, 180)
 
     @staticmethod
@@ -221,7 +242,9 @@ class DataLoader:
             to_stop_id = row["to_stop_id"]
 
             from_stop = stops[from_stop_id]
-            from_stop.set_distance(to_stop_id, row["dist_km"])
+            to_stop = stops[to_stop_id]
+
+            from_stop.set_distance(to_stop, row["dist_km"])
 
         return stops
 
@@ -249,7 +272,7 @@ class DataLoader:
         # Load route data
         routes = self.__load_routes(path, "routes.txt")
 
-        stations, stop_map = self.__load_stations(path, "stations.txt")
+        stations, complexes, stop_map = self.__load_stations(path, "stations.txt")
 
         # Load station data
         stops = self.__load_stops(path, "stops.txt", stations, stop_map)
@@ -278,6 +301,7 @@ class DataLoader:
         # Save output into instance
         self.routes = routes
         self.stations = stations
+        self.complexes = complexes
         self.stops = stops
         self.trips = trips
         self.timetable = timetable
@@ -287,6 +311,9 @@ class DataLoader:
 
     def get_stations(self):
         return self.stations
+
+    def get_complexes(self):
+        return self.complexes
 
     def get_stops(self):
         return self.stops

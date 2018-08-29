@@ -4,16 +4,16 @@ from Subway.StopConnection import *
 
 class SubwayStop:
 
-    def __init__(self, id, parent_station):
-        self.id = id
+    def __init__(self, stop_id, parent_station):
+        self.stop_id = stop_id
         self.parent_station = parent_station
-        self.connections = {}
-        self.stop_transfers = []
-        self.station_transfers = []
+        self.connections = set()
+        self.stop_transfers = set()
+        self.station_transfers = set()
         self.distances = {}
 
     def get_id(self):
-        return self.id
+        return self.stop_id
 
     def get_station(self):
         return self.parent_station
@@ -22,22 +22,18 @@ class SubwayStop:
         return self.get_station().get_name()
 
     def add_connection(self, to_stop, route):
-        key = "%s/%s" % (to_stop.get_id(), route.get_id())
-
-        if key not in self.connections:
-            self.connections[key] = StopConnection(self, to_stop, route)
-
+        self.connections.add(StopConnection(self, to_stop, route))
         return self
 
     def get_connections(self):
-        return self.connections.values()
+        return self.connections
 
     def add_transfer(self, to_stop, transfer_type, min_transfer_time):
 
         if self.get_station() == to_stop.get_station():
-            self.stop_transfers.append(StopTransfer(self, to_stop, transfer_type, min_transfer_time))
+            self.stop_transfers.add(StopTransfer(self, to_stop, transfer_type, min_transfer_time))
         else:
-            self.station_transfers.append(StationTransfer(self, to_stop, transfer_type, min_transfer_time))
+            self.station_transfers.add(StationTransfer(self, to_stop, transfer_type, min_transfer_time))
 
         return self
 
@@ -50,15 +46,13 @@ class SubwayStop:
     def is_terminal(self):
         return len(self.get_connections()) == 0
 
-    def set_distance(self, to_stop_id, dist_km):
-        self.distances[to_stop_id] = dist_km
+    def set_distance(self, to_stop, dist_km):
+        self.distances[to_stop] = dist_km
         return self
 
     def get_distance(self, to_stop):
-        to_stop_id = to_stop.get_id()
-
-        if to_stop_id in self.distances:
-            return self.distances[to_stop_id]
+        if to_stop in self.distances:
+            return self.distances[to_stop]
         else:
             return None
 
@@ -67,3 +61,6 @@ class SubwayStop:
 
     def __str__(self):
         return "%s (%s)" % (self.get_id(), self.get_station())
+
+    def __hash__(self):
+        return hash(self.get_id())
