@@ -4,7 +4,10 @@ import pandas as pd
 
 class DataLoader:
 
-    def __init__(self, path):
+    def __init__(self, path, load_distances = True):
+
+        self.load_distances = load_distances
+
         # Load the data from disk
         self.__load(path)
 
@@ -47,8 +50,9 @@ class DataLoader:
             station_id = str(row["station_id"])
             stop_id = row["gtfs_stop_id"]
 
-            stations[station_id] = SubwayStation(station_id, row["stop_name"], row["latitude"], row["longitude"],
-                                                 row["borough"], row["structure"], row["line"])
+            stations[station_id] = SubwayStation(station_id, row["complex_id"], row["stop_name"],
+                                                 row["latitude"], row["longitude"], row["borough"],
+                                                 row["structure"], row["line"], row["division"])
 
             stop_map[stop_id] = station_id
 
@@ -64,7 +68,7 @@ class DataLoader:
         full_path = "/".join([path, file_name])
 
         # Read data from disk
-        print("Loading station data from '%s'" % full_path)
+        print("Loading stop data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
         stops = {}
@@ -142,6 +146,28 @@ class DataLoader:
         return stop_times
 
     @staticmethod
+    def add_stop_transfer(station):
+
+        for from_stop in station.get_stops():
+            if len(from_stop.get_stop_transfers()) == 0:
+                for to_stop in station.get_stops():
+                    if from_stop != to_stop:
+                        print("Adding stop transfer from %s to %s" % (from_stop.get_id(), to_stop.get_id()))
+                        from_stop.add_transfer(to_stop, 2, 180)
+
+    @staticmethod
+    def add_manual_transfers(stations, stop_map):
+
+        # Manually add transfer at South Ferry to Whitehall (and vice-versa)
+        south_ferry = stations[stop_map["142"]]
+        whitehall = stations[stop_map["R27"]]
+
+        for sf_stop in south_ferry.get_stops():
+            for wh_stop in whitehall.get_stops():
+                sf_stop.add_transfer(wh_stop, 2, 120)
+                wh_stop.add_transfer(sf_stop, 2, 120)
+
+    @staticmethod
     def __load_transfers(path, file_name, stations, stop_map):
 
         # Build full path to file
@@ -174,21 +200,30 @@ class DataLoader:
 
         # Add missing stop transfers
         for station in stations.values():
-            for from_stop in station.get_stops():
-                if len(from_stop.get_stop_transfers()) == 0:
-                    for to_stop in station.get_stops():
-                        if from_stop != to_stop:
-                            print("Adding self-transfer at %s" % station)
-                            from_stop.add_transfer(to_stop, 2, 180)
+            DataLoader.add_stop_transfer(station)
 
-        # Manually add transfer at South Ferry to Whitehall (and vice-versa)
-        south_ferry = stations[stop_map["142"]]
-        whitehall = stations[stop_map["R27"]]
+        # Add manual transfers
+        DataLoader.add_manual_transfers(stations, stop_map)
 
-        for sf_stop in south_ferry.get_stops():
-            for wh_stop in whitehall.get_stops():
-                sf_stop.add_transfer(wh_stop, 2, 120)
-                wh_stop.add_transfer(sf_stop, 2, 120)
+    @staticmethod
+    def __load_distances(path, file_name, stops):
+
+        # Build full path to file
+        full_path = "/".join([path, file_name])
+
+        # Read data from disk
+        print("Loading stop distance data from '%s'" % full_path)
+        data = pd.read_csv(full_path)
+
+        # Iterate through each row in the data set
+        for idx, row in data.iterrows():
+            from_stop_id = row["from_stop_id"]
+            to_stop_id = row["to_stop_id"]
+
+            from_stop = stops[from_stop_id]
+            from_stop.set_distance(to_stop_id, row["dist_km"])
+
+        return stops
 
     @staticmethod
     def __link_stops(trips):
@@ -212,9 +247,9 @@ class DataLoader:
 
     def __load(self, path):
         # Load route data
-        routes = DataLoader.__load_routes(path, "routes.txt")
+        routes = self.__load_routes(path, "routes.txt")
 
-        stations, stop_map = DataLoader.__load_stations(path, "stations.txt")
+        stations, stop_map = self.__load_stations(path, "stations.txt")
 
         # Load station data
         stops = self.__load_stops(path, "stops.txt", stations, stop_map)
@@ -233,6 +268,9 @@ class DataLoader:
 
         # Calculate distance between pairs of stations
         self.__calc_station_distances(stations.values())
+
+        if self.load_distances:
+            self.__load_distances(path, "distances.txt", stops)
 
         # Load time table to look up available segments
         timetable = TimeTable(trips)

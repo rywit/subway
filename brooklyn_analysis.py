@@ -47,7 +47,7 @@ def run_test(stop, chooser):
     lengths = [shortest_ride.get_length()]
 
     # Run 10 evolutions
-    for i in range(12):
+    for i in range(15):
         shortest_ride = run_evolution(shortest_ride, chooser)
         lengths.append(shortest_ride.get_ride_length())
 
@@ -69,8 +69,8 @@ def main():
     valid_stations = set()
 
     for stop in loader.get_stops().values():
-        # if stop.get_station().get_borough() == "M":
-        valid_stations.add(stop.get_station())
+        if stop.get_station().get_borough() == "Bk":
+            valid_stations.add(stop.get_station())
 
     chooser = VisitAllConnectionChooser(valid_stations, valid_stations)
 
@@ -102,6 +102,7 @@ def main():
     print("\n".join(map(str, shortest_ride.get_segments())))
 
     print("\nDistinct Stations: %d of %d" % (shortest_ride.get_length(), len(valid_stations)))
+    print("Ride length: %.2f km" % shortest_ride.get_ride_distance())
 
 
 if __name__ == "__main__":

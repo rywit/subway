@@ -10,6 +10,7 @@ class SubwayStop:
         self.connections = {}
         self.stop_transfers = []
         self.station_transfers = []
+        self.distances = {}
 
     def get_id(self):
         return self.id
@@ -48,6 +49,18 @@ class SubwayStop:
 
     def is_terminal(self):
         return len(self.get_connections()) == 0
+
+    def set_distance(self, to_stop_id, dist_km):
+        self.distances[to_stop_id] = dist_km
+        return self
+
+    def get_distance(self, to_stop):
+        to_stop_id = to_stop.get_id()
+
+        if to_stop_id in self.distances:
+            return self.distances[to_stop_id]
+        else:
+            return None
 
     def __eq__(self, other):
         return self.get_id() == other.get_id()

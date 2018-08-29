@@ -67,6 +67,9 @@ class SubwayRide:
     def get_num_stations(self):
         return len(self.get_stations())
 
+    def get_ride_distance(self):
+        return sum([seg.get_distance() for seg in self.get_ride_segments()])
+
     def get_summary_segments(self):
 
         summary = []

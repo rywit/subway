@@ -1,18 +1,23 @@
 class SubwayStation:
 
-    def __init__(self, station_id, name, lat, lon, borough, structure, line):
+    def __init__(self, station_id, complex_id, name, lat, lon, borough, structure, line, division):
         self.station_id = station_id
+        self.complex_id = complex_id
         self.name = name
         self.lat = lat
         self.lon = lon
         self.borough = borough
         self.structure = structure
         self.line = line
+        self.division = division
         self.stops = []
         self.distances = {}
 
     def get_id(self):
         return self.station_id
+
+    def get_complex_id(self):
+        return self.complex_id
 
     def get_name(self):
         return self.name
@@ -28,6 +33,12 @@ class SubwayStation:
 
     def get_structure(self):
         return self.structure
+
+    def get_line(self):
+        return self.line
+
+    def get_division(self):
+        return self.division
 
     def add_stop(self, stop):
         self.stops.append(stop)
