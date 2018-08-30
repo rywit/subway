@@ -89,7 +89,7 @@ def get_random_stop(stations):
 def main():
 
     # Load the data from disk
-    loader = DataLoader("data")
+    loader = SubwaySystem("data")
 
     # Get the list of all subway stops
     all_stops = loader.get_stops().values()

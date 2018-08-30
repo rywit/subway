@@ -57,7 +57,7 @@ def run_test(ride_chooser, start_station, start_time):
 def main():
 
     # Load the data from disk
-    loader = DataLoader("data")
+    loader = SubwaySystem("data")
 
     far_rockaway = "H11N"
     # pelham_bay = "601S"

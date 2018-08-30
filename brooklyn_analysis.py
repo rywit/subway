@@ -64,7 +64,7 @@ def run_test(stop, chooser):
 def main():
 
     # Load the data from disk
-    loader = DataLoader("data")
+    loader = SubwaySystem("data")
 
     valid_stations = set()
 

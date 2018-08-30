@@ -18,8 +18,17 @@ class StopConnection:
     def get_to_station(self):
         return self.get_to_stop().get_station()
 
+    def get_from_complex(self):
+        return self.get_from_station().get_station_complex()
+
+    def get_to_complex(self):
+        return self.get_to_station().get_station_complex()
+
     def get_route(self):
         return self.route
+
+    def get_distance(self):
+        return self.get_from_stop().get_distance(self.get_to_stop())
 
     def get_id(self):
         return self.connection_id

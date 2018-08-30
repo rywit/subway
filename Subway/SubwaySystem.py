@@ -1,18 +1,16 @@
+from gc import __loader__
+
 from Subway import *
 import pandas as pd
 
 
-class DataLoader:
+class SubwaySystem:
 
-    def __init__(self, path, load_distances = True):
-
-        self.load_distances = load_distances
-
-        # Load the data from disk
-        self.__load(path)
+    def __init__(self, path, load_times = True):
+        self.__load(path, load_times)
 
     @staticmethod
-    def __load_routes(path, file_name):
+    def load_routes(path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -30,7 +28,7 @@ class DataLoader:
         return routes
 
     @staticmethod
-    def __load_stations(path, file_name):
+    def load_stations(path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -52,19 +50,20 @@ class DataLoader:
             stop_id = row["gtfs_stop_id"]
             complex_id = str(row["complex_id"])
 
-            station = SubwayStation(station_id, row["stop_name"],
-                                    row["latitude"], row["longitude"], row["borough"],
-                                    row["structure"], row["line"], row["division"])
+            if station_id not in stations:
+                station = SubwayStation(station_id, row["stop_name"],
+                                        row["latitude"], row["longitude"], row["borough"],
+                                        row["structure"], row["line"], row["division"])
 
-            stations[station_id] = station
+                stations[station_id] = station
+                complex_map.setdefault(complex_id, set()).add(station)
+
             stop_map[stop_id] = station_id
-
-            complex_map.setdefault(complex_id, set()).add(station)
 
         # Manually add South Ferry Loop
         stop_map["140"] = "330"
 
-        complexes = set()
+        complexes = {}
 
         # Build station complexes and link to stations
         for complex_id, station_set in complex_map.items():
@@ -73,7 +72,7 @@ class DataLoader:
             station_complex = StationComplex(complex_id, station_set)
 
             # Add complex to our final set of complexes
-            complexes.add(station_complex)
+            complexes[complex_id] = station_complex
 
             # Link station to complex
             for station in station_set:
@@ -82,7 +81,7 @@ class DataLoader:
         return stations, complexes, stop_map
 
     @staticmethod
-    def __load_stops(path, file_name, stations, stop_map):
+    def load_stops(path, file_name, stations, stop_map):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -113,7 +112,7 @@ class DataLoader:
         return stops
 
     @staticmethod
-    def __load_trips(path, file_name, routes):
+    def load_trips(path, file_name, routes):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -133,7 +132,7 @@ class DataLoader:
         return trips
 
     @staticmethod
-    def __load_stop_times(path, file_name, trips, stops):
+    def load_stop_times(path, file_name, trips, stops):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -189,7 +188,7 @@ class DataLoader:
                 wh_stop.add_transfer(sf_stop, 2, 120)
 
     @staticmethod
-    def __load_transfers(path, file_name, stations, stop_map):
+    def load_transfers(path, file_name, stations, stop_map):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -221,13 +220,13 @@ class DataLoader:
 
         # Add missing stop transfers
         for station in stations.values():
-            DataLoader.add_stop_transfer(station)
+            SubwaySystem.add_stop_transfer(station)
 
         # Add manual transfers
-        DataLoader.add_manual_transfers(stations, stop_map)
+        SubwaySystem.add_manual_transfers(stations, stop_map)
 
     @staticmethod
-    def __load_distances(path, file_name, stops):
+    def load_distances(path, file_name, stops):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -249,78 +248,100 @@ class DataLoader:
         return stops
 
     @staticmethod
-    def __link_stops(trips):
+    def load_connections(path, file_name, stops, routes):
+        # Build full path to file
+        full_path = "/".join([path, file_name])
 
-        # Iterate through each trip
-        for trip in trips.values():
+        # Read data from disk
+        print("Loading connection data from '%s'" % full_path)
+        data = pd.read_csv(full_path)
 
-            stop_times = trip.get_stop_times()
-            route = trip.get_route()
+        # Iterate through each row in the data set
+        for idx, row in data.iterrows():
 
-            for i in range(1, len(stop_times)):
-                from_stop = stop_times[i-1].get_stop()
-                to_stop = stop_times[i].get_stop()
+            from_stop_id = row["from_stop_id"]
+            to_stop_id = row["to_stop_id"]
+            route_id = row["route_id"]
 
-                from_stop.add_connection(to_stop, route)
+            from_stop = stops[from_stop_id]
+            to_stop = stops[to_stop_id]
+            route = routes[route_id]
+
+            from_stop.add_connection(to_stop, route)
 
     @staticmethod
-    def __calc_station_distances(stations):
+    def calc_station_distances(stations):
         for station in stations:
             station.calc_distances()
 
-    def __load(self, path):
+    def __load(self, path, load_times):
+
         # Load route data
-        routes = self.__load_routes(path, "routes.txt")
+        routes = self.load_routes(path, "routes.txt")
 
-        stations, complexes, stop_map = self.__load_stations(path, "stations.txt")
+        stations, complexes, stop_map = self.load_stations(path, "stations.txt")
 
-        # Load station data
-        stops = self.__load_stops(path, "stops.txt", stations, stop_map)
-
-        # Load trip dada
-        trips = self.__load_trips(path, "trips.txt", routes)
-
-        # Load stop time data
-        self.__load_stop_times(path, "stop_times_weekday.txt", trips, stops)
+        # Load stop data
+        stops = self.load_stops(path, "stops.txt", stations, stop_map)
 
         # Build connection data
-        self.__link_stops(trips)
+        self.load_connections(path, "connections.txt", stops, routes)
 
         # Load transfer data
-        self.__load_transfers(path, "transfers.txt", stations, stop_map)
+        self.load_transfers(path, "transfers.txt", stations, stop_map)
 
         # Calculate distance between pairs of stations
-        self.__calc_station_distances(stations.values())
+        self.calc_station_distances(stations.values())
 
-        if self.load_distances:
-            self.__load_distances(path, "distances.txt", stops)
+        self.load_distances(path, "distances.txt", stops)
 
-        # Load time table to look up available segments
-        timetable = TimeTable(trips)
+        if load_times:
+
+            # Load trip dada
+            trips = self.load_trips(path, "trips.txt", routes)
+
+            # Load stop time data
+            self.load_stop_times(path, "stop_times_weekday.txt", trips, stops)
+
+            # Load time table to look up available segments
+            self.timetable = TimeTable(trips)
+            self.trips = trips
 
         # Save output into instance
         self.routes = routes
         self.stations = stations
         self.complexes = complexes
         self.stops = stops
-        self.trips = trips
-        self.timetable = timetable
 
     def get_routes(self):
-        return self.routes
+        return set(self.routes.values())
+
+    def get_route(self, route_id):
+        return self.routes[route_id]
 
     def get_stations(self):
-        return self.stations
+        return set(self.stations.values())
+
+    def get_station(self, station_id):
+        return self.stations[station_id]
 
     def get_complexes(self):
-        return self.complexes
+        return set(self.complexes.values())
+
+    def get_complex(self, complex_id):
+        return self.complexes[complex_id]
 
     def get_stops(self):
-        return self.stops
+        return set(self.stops.values())
+
+    def get_stop(self, stop_id):
+        return self.stops[stop_id]
 
     def get_trips(self):
-        return self.trips
+        return set(self.trips.values())
+
+    def get_trip(self, trip_id):
+        return self.trips[trip_id]
 
     def get_timetable(self):
         return self.timetable
-
