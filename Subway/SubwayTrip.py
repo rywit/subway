@@ -55,3 +55,6 @@ class SubwayTrip:
 
     def __eq__(self, other):
         return self.get_trip_id() == other.get_trip_id()
+
+    def __lt__(self, other):
+        return self.get_trip_id() < other.get_trip_id()

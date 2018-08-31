@@ -270,9 +270,9 @@ class SubwaySystem:
             from_stop.add_connection(to_stop, route)
 
     @staticmethod
-    def calc_station_distances(stations):
+    def calc_station_hops(stations):
         for station in stations:
-            station.calc_distances()
+            station.calc_station_hops()
 
     def __load(self, path, load_times):
 
@@ -291,7 +291,7 @@ class SubwaySystem:
         self.load_transfers(path, "transfers.txt", stations, stop_map)
 
         # Calculate distance between pairs of stations
-        self.calc_station_distances(stations.values())
+        self.calc_station_hops(stations.values())
 
         self.load_distances(path, "distances.txt", stops)
 

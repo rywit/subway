@@ -64,3 +64,6 @@ class SubwayStop:
 
     def __hash__(self):
         return hash(self.get_id())
+
+    def __lt__(self, other):
+        return self.get_id() < other.get_id()
