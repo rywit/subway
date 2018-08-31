@@ -37,6 +37,9 @@ class SubwayRide:
         self.stations.add(segment.get_to_station())
         return self
 
+    def get_first_segment(self):
+        return self.get_segments()[0]
+
     def get_last_segment(self):
         return self.get_segments()[-1]
 
@@ -64,7 +67,7 @@ class SubwayRide:
     def get_length(self):
         return len(self.get_segments())
 
-    def get_ride_length(self):
+    def get_num_rides(self):
         return len(self.get_ride_segments())
 
     def get_num_transfers(self):
@@ -73,16 +76,16 @@ class SubwayRide:
     def get_num_stations(self):
         return len(self.get_stations())
 
-    def get_ride_distance(self):
-        return sum([seg.get_distance() for seg in self.get_ride_segments()])
+    def get_ride_distance_km(self):
+        return sum([seg.get_distance_km() for seg in self.get_ride_segments()])
 
     def get_ride_summary(self):
         return "\n".join([
-            "Start: %s" % self.get_segments()[0].get_from_station(),
-            "End: %s" % self.get_segments()[-1].get_to_station(),
-            "Rides: %d" % self.get_ride_length(),
+            "Start: %s" % self.get_first_segment().get_from_station(),
+            "End: %s" % self.get_last_segment().get_to_station(),
+            "Rides: %d" % self.get_num_rides(),
             "Transfers: %d" % self.get_num_transfers(),
-            "Distance: %.2f km" % self.get_ride_distance()])
+            "Distance: %.2f km" % self.get_ride_distance_km()])
 
     def simplify_ride(self):
 

@@ -27,8 +27,8 @@ class StopConnection:
     def get_route(self):
         return self.route
 
-    def get_distance(self):
-        return self.get_from_stop().get_distance(self.get_to_stop())
+    def get_distance_km(self):
+        return self.get_from_stop().get_distance_km(self.get_to_stop())
 
     def get_id(self):
         return self.connection_id

@@ -21,7 +21,7 @@ def main():
             connections.append(connection)
 
     # Sort connections by distance (in ascending order)
-    connections.sort(key=lambda x: x.get_distance())
+    connections.sort(key=lambda x: x.get_distance_km())
 
     # Number of trees, which we want to go to one
     num_trees = len(complex_map)
@@ -52,7 +52,7 @@ def main():
     counts = {}
 
     for seg in spanning_tree:
-        sum_distance += seg.get_distance()
+        sum_distance += seg.get_distance_km()
 
         from_complex = seg.get_from_complex()
         to_complex = seg.get_to_complex()

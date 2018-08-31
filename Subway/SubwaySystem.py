@@ -243,7 +243,7 @@ class SubwaySystem:
             from_stop = stops[from_stop_id]
             to_stop = stops[to_stop_id]
 
-            from_stop.set_distance(to_stop, row["dist_km"])
+            from_stop.set_distance_km(to_stop, row["dist_km"])
 
         return stops
 

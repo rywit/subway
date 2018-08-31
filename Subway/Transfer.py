@@ -24,6 +24,10 @@ class Transfer:
     def get_min_time(self):
         return self.min_transfer_time
 
+    # For now, all transfers will be zero distance
+    def get_distance_km(self):
+        return 0
+
 
 class StopTransfer(Transfer):
 

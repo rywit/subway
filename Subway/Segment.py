@@ -31,8 +31,8 @@ class RideSegment(Segment):
     def __init__(self, from_stop, to_stop):
         super().__init__(from_stop, to_stop)
 
-    def get_distance(self):
-        return self.get_from_stop().get_distance(self.get_to_stop())
+    def get_distance_km(self):
+        return self.get_from_stop().get_distance_km(self.get_to_stop())
 
 
 class TransferSegment(Segment):

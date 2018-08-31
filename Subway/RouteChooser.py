@@ -62,7 +62,7 @@ class YoyoRide(TripChooser):
         cur_stop = ride.get_current_stop()
         time_ts = ride.get_current_time_ts()
 
-        if ride.get_ride_length() >= self.get_max_length():
+        if ride.get_num_rides() >= self.get_max_length():
             return EndingTripSegment(cur_stop, time_ts)
 
         rides, transfers = self.get_time_table().get_available_segments(cur_stop, time_ts)
@@ -118,7 +118,7 @@ class RandomRide(TripChooser):
         cur_stop = ride.get_current_stop()
         time_ts = ride.get_current_time_ts()
 
-        if ride.get_ride_length() >= self.get_max_length():
+        if ride.get_num_rides() >= self.get_max_length():
             return EndingTripSegment(cur_stop, time_ts)
 
         # Don't wait more than 30 minutes for a transfer
@@ -165,7 +165,7 @@ class UniqueRide(RandomRide):
         cur_stop = ride.get_current_stop()
         time_ts = ride.get_current_time_ts()
 
-        if ride.get_ride_length() >= self.get_max_length():
+        if ride.get_num_rides() >= self.get_max_length():
             return EndingTripSegment(cur_stop, time_ts)
 
         rides, stop_transfers, station_transfers = UniqueRide.get_available_segments(self.get_time_table(), ride)
