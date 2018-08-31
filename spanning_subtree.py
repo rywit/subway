@@ -15,25 +15,27 @@ def main():
 
     connections = []
 
+    # Add each of the connections to our master set
     for from_stop in system.get_stops():
         for connection in from_stop.get_connections():
             connections.append(connection)
 
-    for conn in connections:
-        print("Conn: %s to %s" % (conn.get_from_stop(), conn.get_to_stop()))
-        print("Dist: %.2f" % conn.get_distance())
-
+    # Sort connections by distance (in ascending order)
     connections.sort(key=lambda x: x.get_distance())
 
+    # Number of trees, which we want to go to one
     num_trees = len(complex_map)
     spanning_tree = []
 
+    # Keep trying connections until we have a tree or we run out of connections
     while num_trees > 1 and len(connections) > 0:
         conn = connections.pop(0)
 
+        # Get the to and from complexes
         from_complex = conn.get_from_complex()
         to_complex = conn.get_to_complex()
 
+        # Ge the current tree containing the to and from complexes
         from_tree = complex_map[from_complex]
         to_tree = complex_map[to_complex]
 
