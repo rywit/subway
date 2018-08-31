@@ -10,8 +10,9 @@ class SubwayStation:
         self.line = line
         self.division = division
         self.station_complex = None
-        self.stops = []
-        self.distances = {}
+        self.stops = set()
+        self.hops = {}
+        self.distances_km = {}
 
     def get_id(self):
         return self.station_id
@@ -38,7 +39,7 @@ class SubwayStation:
         return self.division
 
     def add_stop(self, stop):
-        self.stops.append(stop)
+        self.stops.add(stop)
         return self
 
     def get_stops(self):
@@ -56,12 +57,19 @@ class SubwayStation:
 
         return stations
 
-    def calc_distances(self):
-        self.distances = SubwayStation.calc_station_distances({self})
+    def calc_hops(self):
+        self.hops = SubwayStation.calc_station_hops({self})
         return self
 
-    def get_distance(self, to_station):
-        return self.distances[to_station]
+    def get_num_hops(self, to_station):
+        return self.hops[to_station]
+
+    def calc_distances_km(self):
+        self.distances_km = SubwayStation.calc_station_distance_km({self})
+        return self
+
+    def get_distance_km(self, to_station):
+        return self.distances_km[to_station]
 
     def is_terminal(self):
 
@@ -88,24 +96,48 @@ class SubwayStation:
         return hash(self.get_id())
 
     @staticmethod
-    def calc_station_distances(stations, depth=0, distances=None):
+    def calc_station_hops(stations, depth=0, hops=None):
 
-        if distances is None:
-            distances = {}
+        if hops is None:
+            hops = {}
 
         to_visit = set()
 
         # Set the distance for each of the stations
         for station in stations:
-            distances[station] = depth
+            hops[station] = depth
 
         # Pull out the neighbors of each of the stations (that we haven't visited yet)
         for station in stations:
             for neighbor in station.get_connecting_stations():
-                if neighbor not in distances:
+                if neighbor not in hops:
                     to_visit.add(neighbor)
 
         if len(to_visit) > 0:
-            SubwayStation.calc_station_distances(to_visit, depth + 1, distances)
+            SubwayStation.calc_station_hops(to_visit, depth + 1, hops)
+
+        return hops
+
+    @staticmethod
+    def calc_station_distance_km(station, dist=0, distances=None):
+
+        if distances is None:
+            distances = {}
+
+        # Set the distance for each of the stations
+        if station not in distances or dist < distances[station]:
+            distances[station] = dist
+
+            for stop in station.get_stops():
+
+                # Connections to other stations
+                for conn in stop.get_connections():
+                    new_dist = dist + conn.get_distance_km()
+                    SubwayStation.calc_station_distance_km(conn.get_to_station(), new_dist, distances)
+
+                # Transfers to other stations
+                for trans in stop.get_station_transfers():
+                    new_dist = dist + trans.get_distance_km()
+                    SubwayStation.calc_station_distance_km(trans.get_to_station(), new_dist, distances)
 
         return distances
