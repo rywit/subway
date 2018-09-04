@@ -30,20 +30,22 @@ connections <- weekday.trips %>%
 write.csv( connections, "connections.txt", quote = F, row.names = F )
 
 # Direct connections between stops (i.e. remove express trains)
-direct <- connections %>%
-  select( from_stop_id, to_stop_id ) %>%
-  distinct() %>%
-  inner_join( stops, by = c( "from_stop_id" = "stop_id" ) ) %>%
-  select( from_stop_id, to_stop_id, stop_lat, stop_lon ) %>%
-  rename( "from_stop_lat" = "stop_lat", "from_stop_lon" = "stop_lon" ) %>%
-  inner_join( stops, by = c( "to_stop_id" = "stop_id" ) ) %>%
-  rename( "to_stop_lat" = "stop_lat", "to_stop_lon" = "stop_lon" ) %>%
-  select( from_stop_id, to_stop_id, from_stop_lat, from_stop_lon, to_stop_lat, to_stop_lon ) %>%
-  mutate( dist = calc.distance( from_stop_lat, from_stop_lon, to_stop_lat, to_stop_lon ) ) %>%
-  group_by( from_stop_id ) %>%
-  top_n( -1, wt = dist ) %>%
-  ungroup() %>%
-  select( from_stop_id, to_stop_id )
+stop.diffs <- weekday.trips %>%
+  inner_join( weekday.trips, by = "trip_id" ) %>%
+  filter( stop_sequence.x < stop_sequence.y ) %>%
+  mutate( stop_diff = stop_sequence.y - stop_sequence.x ) %>%
+  select( stop_id.x, stop_id.y, stop_diff ) %>%
+  rename( "from_stop_id" = "stop_id.x", "to_stop_id" = "stop_id.y" ) %>%
+  group_by( from_stop_id, to_stop_id ) %>%
+  summarise( stop_diff = max( stop_diff ) ) %>%
+  ungroup()
 
-write.csv( direct, "data/links.txt", quote = F, row.names = F )
+links <- connections %>%
+  inner_join( stop.diffs, by = c( "from_stop_id", "to_stop_id" ) ) %>%
+  filter( stop_diff == 1 ) %>%
+  select( from_stop_id, to_stop_id ) %>%
+  distinct()
+
+write.csv( links, "data/links.txt", quote = F, row.names = F )
+
 

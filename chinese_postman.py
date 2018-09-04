@@ -11,7 +11,7 @@ def get_shortest_pair(stations):
             if from_station == to_station:
                 continue
 
-            dist = from_station.get_distance_km(to_station)
+            dist = from_station.get_distance_hops(to_station)
 
             distances.append({"from_station": from_station, "to_station": to_station, "dist": dist})
 
@@ -25,7 +25,10 @@ def main():
     # Load the data from disk
     system = SubwayLinkSystem("data")
 
-    for station in system.get_stations():
+    stations = list(system.get_stations())
+    stations.sort()
+
+    for station in stations:
         print("Calculating: %s" % station)
         station.calc_distances_km()
 
@@ -33,12 +36,27 @@ def main():
 
     for from_station in system.get_stations():
         for to_station in from_station.get_connecting_stations():
-            nodes.setdefault(from_station, set()).add(to_station)
-            nodes.setdefault(to_station, set()).add(from_station)
+            nodes.setdefault(from_station, [])
+            nodes.setdefault(to_station, [])
+
+            if to_station not in nodes[from_station]:
+                nodes[from_station].append(to_station)
+
+            if from_station not in nodes[to_station]:
+                nodes[to_station].append(from_station)
 
     odd_vertices = [station for station in nodes if len(nodes[station]) % 2 == 1]
 
-    print("Num odd stations: %d of %d" % (len(odd_vertices), len(nodes)))
+    total_hops = 0
+    total_km = 0
+
+    for from_station in nodes:
+        for to_station in nodes[from_station]:
+            total_km += from_station.get_distance_km(to_station)
+            total_hops += from_station.get_distance_hops(to_station)
+
+    print("Num hops in system: %d" % (total_hops / 2.0))
+    print("Length of system: %.2f" % (total_km / 2.0))
 
     while len(odd_vertices) > 0:
         shortest = get_shortest_pair(odd_vertices)
@@ -46,20 +64,23 @@ def main():
         from_station = shortest["from_station"]
         to_station = shortest["to_station"]
 
-        nodes[from_station].add(to_station)
-        nodes[to_station].add(from_station)
+        print("Adding edge: %.2f" % shortest["dist"])
+
+        nodes[from_station].append(to_station)
+        nodes[to_station].append(from_station)
 
         odd_vertices = [station for station in nodes if len(nodes[station]) % 2 == 1]
 
-        print("Num odd stations: %d of %d" % (len(odd_vertices), len(nodes)))
-
-    dist_total = 0
+    dist_total_km = 0
+    dist_total_hops = 0
 
     for from_station in nodes:
         for to_station in nodes[from_station]:
-            dist_total += from_station.get_distance_km(to_station)
+            dist_total_km += from_station.get_distance_km(to_station)
+            dist_total_hops += from_station.get_distance_hops(to_station)
 
-    print("Total path length: %.2f" % dist_total)
+    print("Shortest circuit: %d" % (dist_total_hops / 2.0))
+    print("Length of circuit (km): %.2f" % (dist_total_km / 2.0))
 
     print("Done!")
 

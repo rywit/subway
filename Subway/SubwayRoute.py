@@ -14,6 +14,9 @@ class SubwayRoute:
 	def get_long_name( self ):
 		return self.long_name
 
+	def __hash__(self):
+		return hash(self.get_id())
+
 	def __str__(self):
 		return self.get_short_name()
 

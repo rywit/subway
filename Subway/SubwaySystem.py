@@ -201,7 +201,7 @@ class SubwaySystem:
     @staticmethod
     def calc_station_hops(stations):
         for station in stations:
-            station.calc_station_hops()
+            station.calc_distances_hops()
 
     def load_basic_data(self, path):
 
@@ -293,8 +293,7 @@ class SubwayConnectionSystem(SubwaySystem):
         self.load_basic_data(path)
         self.load_connection_data(path)
 
-    @staticmethod
-    def load_connections(path, file_name, stops, routes):
+    def load_connections(self, path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -310,16 +309,16 @@ class SubwayConnectionSystem(SubwaySystem):
             to_stop_id = row["to_stop_id"]
             route_id = row["route_id"]
 
-            from_stop = stops[from_stop_id]
-            to_stop = stops[to_stop_id]
-            route = routes[route_id]
+            from_stop = self.get_stop(from_stop_id)
+            to_stop = self.get_stop(to_stop_id)
+            route = self.get_route(route_id)
 
             from_stop.add_ride_segment(RideConnectionSegment(from_stop, to_stop, route))
 
     def load_connection_data(self, path):
 
         # Build connection data
-        self.load_connections(path, "connections.txt", self.get_stops(), self.get_routes())
+        self.load_connections(path, "connections.txt")
 
         # Calculate distance between pairs of stations
         self.calc_station_hops(self.get_stations())
