@@ -1,4 +1,4 @@
-from Subway.Segment import *
+from Subway.Segments.Segment import *
 
 
 class SubwayRide:
@@ -95,8 +95,8 @@ class SubwayRide:
             segment1 = segments[i]
             segment2 = segments[i+1]
 
-            if isinstance(segment1, TransferConnection) and isinstance(segment2, TransferConnection):
-                segments[i] = TransferConnection(segment1.get_from_stop(), segment2.get_to_stop())
+            if isinstance(segment1, TransferSegment) and isinstance(segment2, TransferSegment):
+                segments[i] = segment1.merge(segment2)
                 del segments[i+1]
 
     def get_summary_segments(self):

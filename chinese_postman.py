@@ -19,10 +19,11 @@ def get_shortest_pair(stations):
 
     return distances[0]
 
+
 def main():
 
     # Load the data from disk
-    system = SubwaySystem("data", load_times=False)
+    system = SubwayLinkSystem("data")
 
     for station in system.get_stations():
         print("Calculating: %s" % station)

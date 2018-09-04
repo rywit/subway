@@ -1,7 +1,3 @@
-from Subway.Transfer import *
-from Subway.StopConnection import *
-
-
 class SubwayStop:
 
     def __init__(self, stop_id, parent_station):
@@ -21,30 +17,29 @@ class SubwayStop:
     def get_station_name(self):
         return self.get_station().get_name()
 
-    def add_connection(self, to_stop, route):
-        self.connections.add(StopConnection(self, to_stop, route))
+    def add_ride_segment(self, connection):
+        self.connections.add(connection)
         return self
 
-    def get_connections(self):
+    def get_ride_segments(self):
         return self.connections
 
-    def add_transfer(self, to_stop, transfer_type, min_transfer_time):
-
-        if self.get_station() == to_stop.get_station():
-            self.stop_transfers.add(StopTransfer(self, to_stop, transfer_type, min_transfer_time))
-        else:
-            self.station_transfers.add(StationTransfer(self, to_stop, transfer_type, min_transfer_time))
-
+    def add_stop_transfer_segment(self, transfer):
+        self.stop_transfers.add(transfer)
         return self
 
-    def get_stop_transfers(self):
+    def get_stop_transfer_segments(self):
         return self.stop_transfers
 
-    def get_station_transfers(self):
+    def add_station_transfer(self, transfer):
+        self.station_transfers.add(transfer)
+        return self
+
+    def get_station_transfer_segments(self):
         return self.station_transfers
 
     def is_terminal(self):
-        return len(self.get_connections()) == 0
+        return len(self.get_ride_segments()) == 0
 
     def set_distance_km(self, to_stop, dist_km):
         self.distances_km[to_stop] = dist_km

@@ -3,12 +3,10 @@ from Subway.SubwayStation import SubwayStation
 from Subway.SubwayStop import SubwayStop
 from Subway.SubwayStopTime import SubwayStopTime
 from Subway.SubwayTrip import SubwayTrip
-from Subway.Transfer import *
 from Subway.SubwayRide import SubwayRide
 from Subway.TimeTable import TimeTable
-from Subway.Segment import Segment
-from Subway.StopConnection import StopConnection
-from Subway.ConnectionChooser import *
-from Subway.RouteChooser import *
+from Subway.Segments.Segment import *
+from Subway.RouteChoosers.LinkChooser import *
+from Subway.RouteChoosers.TripChooser import *
 from Subway.StationComplex import StationComplex
-from Subway.SubwaySystem import SubwaySystem
+from Subway.SubwaySystem import *

@@ -1,4 +1,4 @@
-from Subway.Segment import *
+from Subway.Segments import *
 
 import random
 
@@ -31,7 +31,7 @@ class JustRide(TripChooser):
 
         # If there is nowhere to ride, then our trip is over
         if len(rides) == 0:
-            return EndingTripSegment(cur_stop, time_ts)
+            return EndingSegment(cur_stop)
 
         # If we are at the start, just start riding the first train
         if ride.is_beginning():
@@ -44,7 +44,7 @@ class JustRide(TripChooser):
                 return segment
 
         # We have nowhere left to ride
-        return EndingTripSegment(cur_stop, time_ts)
+        return EndingSegment(cur_stop)
 
 
 class YoyoRide(TripChooser):
@@ -63,7 +63,7 @@ class YoyoRide(TripChooser):
         time_ts = ride.get_current_time_ts()
 
         if ride.get_num_rides() >= self.get_max_length():
-            return EndingTripSegment(cur_stop, time_ts)
+            return EndingSegment(cur_stop, time_ts)
 
         rides, transfers = self.get_time_table().get_available_segments(cur_stop, time_ts)
 
@@ -87,7 +87,7 @@ class YoyoRide(TripChooser):
                 return segment
 
         # We have nowhere left to ride
-        return EndingTripSegment(cur_stop, time_ts)
+        return EndingSegment(cur_stop, time_ts)
 
 
 class RandomRide(TripChooser):
@@ -119,7 +119,7 @@ class RandomRide(TripChooser):
         time_ts = ride.get_current_time_ts()
 
         if ride.get_num_rides() >= self.get_max_length():
-            return EndingTripSegment(cur_stop, time_ts)
+            return EndingSegment(cur_stop, time_ts)
 
         # Don't wait more than 30 minutes for a transfer
         max_wait = 30 * 60
@@ -166,14 +166,14 @@ class UniqueRide(RandomRide):
         time_ts = ride.get_current_time_ts()
 
         if ride.get_num_rides() >= self.get_max_length():
-            return EndingTripSegment(cur_stop, time_ts)
+            return EndingSegment(cur_stop, time_ts)
 
         rides, stop_transfers, station_transfers = UniqueRide.get_available_segments(self.get_time_table(), ride)
 
         # If we just transferred, ride or end
         if ride.just_transferred():
             if len(rides) == 0:
-                return EndingTripSegment(cur_stop, time_ts)
+                return EndingSegment(cur_stop, time_ts)
             else:
                 return UniqueRide.get_random_segment(rides)
 
@@ -184,7 +184,7 @@ class UniqueRide(RandomRide):
             elif len(stop_transfers) > 0:
                 return UniqueRide.get_random_segment(stop_transfers)
             else:
-                return EndingTripSegment(cur_stop, time_ts)
+                return EndingSegment(cur_stop, time_ts)
 
         # Randomly ride or transfer
         return UniqueRide.get_random_segment(rides + station_transfers)

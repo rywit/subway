@@ -1,10 +1,13 @@
 library(dplyr)
 
 # Read stop time data from disk
-stop.times <- read.csv( "stop_times.txt", stringsAsFactors = F )
+stop.times <- read.csv( "data/stop_times.txt", stringsAsFactors = F )
 
 # Read trip data from disk
-trips <- read.csv( "trips.txt", stringsAsFactors = F )
+trips <- read.csv( "data/trips.txt", stringsAsFactors = F )
+
+# Read stop data from disk
+stops <- read.csv( "data/stops.txt", stringsAsFactors = F )
 
 # Filter for routes during 8AM-6PM weekdays
 weekday.trips <- stop.times %>%
@@ -25,3 +28,22 @@ connections <- weekday.trips %>%
   distinct()
 
 write.csv( connections, "connections.txt", quote = F, row.names = F )
+
+# Direct connections between stops (i.e. remove express trains)
+direct <- connections %>%
+  select( from_stop_id, to_stop_id ) %>%
+  distinct() %>%
+  inner_join( stops, by = c( "from_stop_id" = "stop_id" ) ) %>%
+  select( from_stop_id, to_stop_id, stop_lat, stop_lon ) %>%
+  rename( "from_stop_lat" = "stop_lat", "from_stop_lon" = "stop_lon" ) %>%
+  inner_join( stops, by = c( "to_stop_id" = "stop_id" ) ) %>%
+  rename( "to_stop_lat" = "stop_lat", "to_stop_lon" = "stop_lon" ) %>%
+  select( from_stop_id, to_stop_id, from_stop_lat, from_stop_lon, to_stop_lat, to_stop_lon ) %>%
+  mutate( dist = calc.distance( from_stop_lat, from_stop_lon, to_stop_lat, to_stop_lon ) ) %>%
+  group_by( from_stop_id ) %>%
+  top_n( -1, wt = dist ) %>%
+  ungroup() %>%
+  select( from_stop_id, to_stop_id )
+
+write.csv( direct, "data/links.txt", quote = F, row.names = F )
+

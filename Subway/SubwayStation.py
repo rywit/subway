@@ -49,10 +49,10 @@ class SubwayStation:
         stations = set()
 
         for stop in self.get_stops():
-            for conn in stop.get_connections():
+            for conn in stop.get_ride_segments():
                 stations.add(conn.get_to_station())
 
-            for trans in stop.get_station_transfers():
+            for trans in stop.get_station_transfer_segments():
                 stations.add(trans.get_to_station())
 
         return stations
@@ -134,12 +134,12 @@ class SubwayStation:
             for stop in station.get_stops():
 
                 # Connections to other stations
-                for conn in stop.get_connections():
+                for conn in stop.get_ride_segments():
                     new_dist = dist + conn.get_distance_km()
                     SubwayStation.calc_station_distance_km(conn.get_to_station(), new_dist, distances)
 
                 # Transfers to other stations
-                for trans in stop.get_station_transfers():
+                for trans in stop.get_station_transfer_segments():
                     new_dist = dist + trans.get_distance_km()
                     SubwayStation.calc_station_distance_km(trans.get_to_station(), new_dist, distances)
 

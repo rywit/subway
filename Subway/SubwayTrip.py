@@ -1,4 +1,4 @@
-from Subway.Segment import RideTripSegment
+from Subway.Segments.TripSegment import RideTripSegment
 
 
 class SubwayTrip:

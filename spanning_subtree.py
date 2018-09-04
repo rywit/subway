@@ -17,7 +17,7 @@ def main():
 
     # Add each of the connections to our master set
     for from_stop in system.get_stops():
-        for connection in from_stop.get_connections():
+        for connection in from_stop.get_ride_segments():
             connections.append(connection)
 
     # Sort connections by distance (in ascending order)

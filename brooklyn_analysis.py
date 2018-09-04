@@ -72,7 +72,7 @@ def main():
         # if stop.get_station().get_borough() == "M":
         valid_stations.add(stop.get_station())
 
-    chooser = VisitAllConnectionChooser(valid_stations, valid_stations)
+    chooser = VisitAllLinkChooser(valid_stations, valid_stations)
 
     # Run one simulation
     shortest_ride = None

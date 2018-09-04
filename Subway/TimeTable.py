@@ -1,6 +1,3 @@
-from Subway.Segment import *
-
-
 class TimeTable:
 
     def __init__(self, trips):

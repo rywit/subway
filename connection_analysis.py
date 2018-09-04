@@ -102,7 +102,7 @@ def main():
     print("Starting at %s" % starting_stop)
 
     # Build a route chooser
-    chooser = UniqueConnectionChooser(valid_stations)
+    chooser = UniqueLinkChooser(valid_stations)
 
     # Run one simulation
     longest_ride = None

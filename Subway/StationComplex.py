@@ -23,7 +23,7 @@ class StationComplex:
         connections = set()
 
         for stop in self.get_stops():
-            for connection in stop.get_connections():
+            for connection in stop.get_ride_segments():
                 connections.add(connection)
 
         return connections
