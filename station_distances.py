@@ -1,0 +1,130 @@
+from Subway import *
+
+
+def distance_in_km(stations):
+
+    distances = []
+
+    for from_station in stations:
+        for to_station in stations:
+            if to_station <= from_station:
+                continue
+
+            dist = from_station.get_distance_km(to_station)
+
+            distances.append({"from": from_station, "to": to_station, "dist": dist})
+
+    sorted_km = sorted(filter(lambda x: x["dist"] > 0, distances), key=lambda x: x["dist"])
+
+    print("By Distance km---")
+    print("Closest stations:")
+
+    for i in range(5):
+        res = sorted_km[i]
+        print("%s to %s: %.2f km" % (res["from"], res["to"], res["dist"]))
+
+    print("Furthest stations:")
+
+    for i in range(-1, -6, -1):
+        res = sorted_km[i]
+        print("%s to %s: %.2f km" % (res["from"], res["to"], res["dist"]))
+
+
+def distance_in_segments(stations):
+
+    distances = []
+
+    for from_station in stations:
+        for to_station in stations:
+            if to_station <= from_station:
+                continue
+
+            dist = from_station.get_distance_segments(to_station)
+
+            distances.append({"from": from_station, "to": to_station, "dist": dist})
+
+    sorted_res = sorted(filter(lambda x: x["dist"] > 0, distances), key=lambda x: x["dist"])
+
+    print("By Segments---")
+    print("Closest stations:")
+
+    for i in range(5):
+        res = sorted_res[i]
+        print("%s to %s: %d" % (res["from"], res["to"], res["dist"]))
+
+    print("Furthest stations:")
+
+    for i in range(-1, -6, -1):
+        res = sorted_res[i]
+        print("%s to %s: %d" % (res["from"], res["to"], res["dist"]))
+
+
+def distance_in_rides(stations):
+
+    distances = []
+
+    for from_station in stations:
+        for to_station in stations:
+            if to_station <= from_station:
+                continue
+
+            dist = from_station.get_distance_rides(to_station)
+
+            distances.append({"from": from_station, "to": to_station, "dist": dist})
+
+    sorted_res = sorted(filter(lambda x: x["dist"] > 0, distances), key=lambda x: x["dist"])
+
+    print("By Rides---")
+    print("Furthest stations:")
+
+    for i in range(-1, -6, -1):
+        res = sorted_res[i]
+        print("%s to %s: %d" % (res["from"], res["to"], res["dist"]))
+
+
+def distance_in_transfers(stations):
+
+    distances = []
+
+    for from_station in stations:
+        for to_station in stations:
+            if to_station <= from_station:
+                continue
+
+            dist = from_station.get_distance_transfers(to_station)
+
+            distances.append({"from": from_station, "to": to_station, "dist": dist})
+
+    sorted_res = sorted(filter(lambda x: x["dist"] > 0, distances), key=lambda x: x["dist"])
+
+    print("By Transfers---")
+    print("Furthest stations:")
+
+    for i in range(-1, -6, -1):
+        res = sorted_res[i]
+        print("%s to %s: %d" % (res["from"], res["to"], res["dist"]))
+
+
+def main():
+
+    # Load the data from disk
+    system = SubwayLinkSystem("data")
+
+    stations = list(system.get_stations())
+    stations.sort()
+
+    for station in stations:
+        print("Calculating: %s" % station)
+        station.calc_distances_km()
+
+    distance_in_km(stations)
+
+    distance_in_segments(stations)
+
+    distance_in_rides(stations)
+
+    distance_in_transfers(stations)
+
+
+if __name__ == "__main__":
+    main()
