@@ -130,24 +130,30 @@ class SubwayStation:
         if rides is None:
             rides = {}
 
-        to_visit = set()
+        to_visit_same = set()
+        to_visit_down = set()
 
         # Set the distance for each of the stations
         for station in stations:
-            if station not in rides:
+
+            rides.setdefault(station, depth)
+
+            if rides[station] > depth:
                 rides[station] = depth
 
             for neighbor in station.get_connecting_ride_stations():
                 if neighbor not in rides:
-                    to_visit.add(neighbor)
+                    to_visit_down.add(neighbor)
 
             for neighbor in station.get_connecting_transfer_stations():
                 if neighbor not in rides:
-                    rides[neighbor] = depth
-                    to_visit.add(neighbor)
+                    to_visit_same.add(neighbor)
 
-        if len(to_visit) > 0:
-            SubwayStation.calc_station_distance_rides(to_visit, depth + 1, rides)
+        if len(to_visit_same) > 0:
+            SubwayStation.calc_station_distance_rides(to_visit_same, depth, rides)
+
+        if len(to_visit_down) > 0:
+            SubwayStation.calc_station_distance_rides(to_visit_down, depth + 1, rides)
 
         return rides
 
@@ -157,7 +163,8 @@ class SubwayStation:
         if transfers is None:
             transfers = {}
 
-        to_visit = set()
+        to_visit_same = set()
+        to_visit_down = set()
 
         # Set the distance for each of the stations
         for station in stations:
@@ -166,15 +173,17 @@ class SubwayStation:
 
             for neighbor in station.get_connecting_ride_stations():
                 if neighbor not in transfers:
-                    transfers[neighbor] = depth
-                    to_visit.add(neighbor)
+                    to_visit_same.add(neighbor)
 
             for neighbor in station.get_connecting_transfer_stations():
                 if neighbor not in transfers:
-                    to_visit.add(neighbor)
+                    to_visit_down.add(neighbor)
 
-        if len(to_visit) > 0:
-            SubwayStation.calc_station_distance_transfers(to_visit, depth + 1, transfers)
+        if len(to_visit_same) > 0:
+            SubwayStation.calc_station_distance_transfers(to_visit_same, depth, transfers)
+
+        if len(to_visit_down) > 0:
+            SubwayStation.calc_station_distance_transfers(to_visit_down, depth + 1, transfers)
 
         return transfers
 

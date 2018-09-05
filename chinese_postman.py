@@ -1,6 +1,19 @@
 from Subway import *
 
 
+def summarise(nodes):
+    dist = {"segments": 0, "km": 0}
+
+    for from_station in nodes:
+        for to_station in nodes[from_station]:
+            dist["km"] += from_station.get_distance_km(to_station)
+            dist["segments"] += from_station.get_distance_segments(to_station)
+
+    print("Stations: %d" % len(nodes))
+    print("Segments: %d" % (dist["segments"] / 2.0))
+    print("Distance: %.2f km" % (dist["km"] / 2.0))
+
+
 def get_shortest_pair(stations):
 
     distances = []
@@ -12,18 +25,14 @@ def get_shortest_pair(stations):
                 continue
 
             dist_km = from_station.get_distance_km(to_station)
-            dist_rides = from_station.get_distance_rides(to_station)
-            dist_trans = from_station.get_distance_transfers(to_station)
+            dist_segs = from_station.get_distance_segments(to_station)
 
             distances.append({"from_station": from_station, "to_station": to_station,
-                              "dist_km": dist_km, "dist_rides": dist_rides, "dist_trans": dist_trans})
+                              "dist_km": dist_km, "dist_segs": dist_segs})
 
-    min_rides = min([x["dist_km"] for x in distances])
-    shortest = [x for x in distances if x["dist_km"] == min_rides]
+    distances.sort(key=lambda x: (x["dist_km"], x["dist_segs"]))
 
-    shortest.sort(key=lambda x: x["dist_rides"])
-
-    return shortest[0]
+    return distances[0]
 
 
 def main():
@@ -41,7 +50,7 @@ def main():
     nodes = {}
 
     for from_station in system.get_stations():
-        for to_station in from_station.get_connecting_stations():
+        for to_station in from_station.get_connecting_ride_stations():
             nodes.setdefault(from_station, [])
             nodes.setdefault(to_station, [])
 
@@ -53,23 +62,8 @@ def main():
 
     odd_vertices = [station for station in nodes if len(nodes[station]) % 2 == 1]
 
-    total_rides = 0
-    total_trans = 0
-    total_km = 0
-    total_segments = 0
-
-    for from_station in nodes:
-        for to_station in nodes[from_station]:
-            total_km += from_station.get_distance_km(to_station)
-            total_rides += from_station.get_distance_rides(to_station)
-            total_trans += from_station.get_distance_transfers(to_station)
-            total_segments += from_station.get_distance_segments(to_station)
-
     print("System:")
-    print("Rides: %d" % (total_rides / 2.0))
-    print("Transfers: %d" % (total_trans / 2.0))
-    print("Segments: %d" % (total_segments / 2.0))
-    print("Distance: %.2f km" % (total_km / 2.0))
+    summarise(nodes)
 
     while len(odd_vertices) > 0:
         shortest = get_shortest_pair(odd_vertices)
@@ -82,24 +76,8 @@ def main():
 
         odd_vertices = [station for station in nodes if len(nodes[station]) % 2 == 1]
 
-    dist_total_km = 0
-    dist_total_trans = 0
-    dist_total_rides = 0
-    dist_total_segs = 0
-
-    for from_station in nodes:
-        for to_station in nodes[from_station]:
-            dist_total_km += from_station.get_distance_km(to_station)
-            dist_total_rides += from_station.get_distance_rides(to_station)
-            dist_total_trans += from_station.get_distance_transfers(to_station)
-            dist_total_segs += from_station.get_distance_segments(to_station)
-
-    print("\n")
-    print("Shortest circuit:")
-    print("Rides: %d" % (dist_total_rides / 2.0))
-    print("Transfers: %d" % (dist_total_trans / 2.0))
-    print("Segments: %d" % (dist_total_segs / 2.0))
-    print("Distance: %.2f km" % (dist_total_km / 2.0))
+    print("Circuit:")
+    summarise(nodes)
 
 
 if __name__ == "__main__":
