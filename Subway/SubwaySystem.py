@@ -199,9 +199,11 @@ class SubwaySystem:
         return stops
 
     @staticmethod
-    def calc_station_hops(stations):
+    def calc_distances(stations):
         for station in stations:
-            station.calc_distances_hops()
+            station.calc_distances_transfers()
+            station.calc_distances_rides()
+            station.calc_distances_segments()
 
     def load_basic_data(self, path):
 
@@ -283,7 +285,7 @@ class SubwayLinkSystem(SubwaySystem):
         self.load_links(path, "links.txt")
 
         # Calculate distance between pairs of stations
-        self.calc_station_hops(self.get_stations())
+        self.calc_distances(self.get_stations())
 
 
 class SubwayConnectionSystem(SubwaySystem):
@@ -321,7 +323,7 @@ class SubwayConnectionSystem(SubwaySystem):
         self.load_connections(path, "connections.txt")
 
         # Calculate distance between pairs of stations
-        self.calc_station_hops(self.get_stations())
+        self.calc_distances(self.get_stations())
 
 
 class SubwayTripSystem(SubwaySystem):
