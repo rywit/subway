@@ -105,6 +105,13 @@ class SubwayStation:
 
         return False
 
+    def is_passthrough(self):
+        for stop in self.get_stops():
+            if not stop.is_passthrough():
+                return False
+
+        return True
+
     def set_station_complex(self, station_complex):
         self.station_complex = station_complex
         return self

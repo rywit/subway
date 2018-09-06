@@ -3,20 +3,25 @@ from Subway.Segments.Segment import *
 
 class SubwayRide:
 
-    def __init__(self, segments):
-        if isinstance(segments, Segment):
+    def __init__(self, segments=None, stations=None):
+        if segments is None:
+            self.segments = []
+        elif isinstance(segments, Segment):
             self.segments = [segments]
         else:
-            self.segments = segments
+            self.segments = segments.copy()
 
-        self.stations = set()
+        if stations is None:
+            self.stations = set()
 
-        for seg in self.segments:
-            self.stations.add(seg.get_from_station())
-            self.stations.add(seg.get_to_station())
+            for seg in self.segments:
+                self.stations.add(seg.get_from_station())
+                self.stations.add(seg.get_to_station())
+        else:
+            self.stations = stations.copy()
 
     def clone(self):
-        return SubwayRide(list(self.get_segments()))
+        return SubwayRide(self.get_segments(), self.get_visited_stations())
 
     def get_segments(self):
         return self.segments
@@ -49,6 +54,9 @@ class SubwayRide:
     def get_current_stop(self):
         return self.get_last_segment().get_to_stop()
 
+    def get_current_station(self):
+        return self.get_last_segment().get_to_station()
+
     def is_beginning(self):
         return isinstance(self.get_last_segment(), StartingSegment)
 
@@ -79,6 +87,7 @@ class SubwayRide:
             "End: %s" % self.get_last_segment().get_to_station(),
             "Rides: %d" % self.get_num_rides(),
             "Transfers: %d" % self.get_num_transfers(),
+            "Stations: %d" % self.get_num_stations(),
             "Distance: %.2f km" % self.get_ride_distance_km()])
 
     def simplify_ride(self):

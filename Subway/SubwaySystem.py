@@ -15,8 +15,7 @@ class SubwaySystem:
     def get_station_filter(self):
         return self.station_filter
 
-    @staticmethod
-    def load_routes(path, file_name):
+    def load_routes(self, path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -31,10 +30,9 @@ class SubwaySystem:
             route_id = row["route_id"]
             routes[route_id] = SubwayRoute(route_id, row["route_short_name"], row["route_long_name"])
 
-        return routes
+        self.routes = routes
 
-    @staticmethod
-    def load_stations(path, file_name, station_filter):
+    def load_stations(self, path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -50,26 +48,25 @@ class SubwaySystem:
         stop_map = {}
         complex_map = {}
 
+        station_filter = self.get_station_filter()
+
         for idx, row in data.iterrows():
 
             station_id = str(row["station_id"])
             stop_id = row["gtfs_stop_id"]
             complex_id = str(row["complex_id"])
 
+            stop_map[stop_id] = station_id
+
             if station_id not in stations:
                 station = SubwayStation(station_id, row["stop_name"],
                                         row["latitude"], row["longitude"], row["borough"],
                                         row["structure"], row["line"], row["division"])
 
-                stations[station_id] = station
-                complex_map.setdefault(complex_id, set()).add(station)
-
-            stop_map[stop_id] = station_id
-
-        if station_filter is not None:
-            for station_id, station in stations.items():
-                if not station_filter(station):
-                    del stations[station_id]
+                # Run station filter
+                if station_filter(station):
+                    stations[station_id] = station
+                    complex_map.setdefault(complex_id, set()).add(station)
 
         # Manually add South Ferry Loop
         stop_map["140"] = "330"
@@ -89,10 +86,12 @@ class SubwaySystem:
             for station in station_set:
                 station.set_station_complex(station_complex)
 
-        return stations, complexes, stop_map
+        self.stations = stations
+        self.complexes = complexes
 
-    @staticmethod
-    def load_stops(path, file_name, stations, stop_map):
+        return stop_map
+
+    def load_stops(self, path, file_name, stop_map):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -110,8 +109,14 @@ class SubwaySystem:
 
             if not pd.isna(parent_stop_id):
 
+                station_id = stop_map[parent_stop_id]
+
+                # Skip this stop if its parent station isn't in our included set
+                if not self.is_valid_station(station_id):
+                    continue
+
                 # Find the parent station for this stop
-                parent_station = stations[stop_map[parent_stop_id]]
+                parent_station = self.get_station(station_id)
 
                 stop_id = row["stop_id"]
                 stop = SubwayStop(stop_id, parent_station)
@@ -119,7 +124,7 @@ class SubwaySystem:
                 stops[stop_id] = stop
                 parent_station.add_stop(stop)
 
-        return stops
+        self.stops = stops
 
     @staticmethod
     def add_stop_transfer(station):
@@ -132,20 +137,25 @@ class SubwaySystem:
                               (from_stop.get_id(), to_stop.get_id(), to_stop.get_station()))
                         from_stop.add_stop_transfer_segment(TransferSegment(from_stop, to_stop))
 
-    @staticmethod
-    def add_manual_transfers(stations, stop_map):
+    def add_manual_transfers(self, stop_map):
+
+        south_ferry_id = stop_map["142"]
+        whitehall_id = stop_map["R27"]
+
+        # If we are excluding either south ferry or whitehall, leave
+        if not self.is_valid_station(south_ferry_id) or not self.is_valid_station(whitehall_id):
+            return
 
         # Manually add transfer at South Ferry to Whitehall (and vice-versa)
-        south_ferry = stations[stop_map["142"]]
-        whitehall = stations[stop_map["R27"]]
+        south_ferry = self.get_station(south_ferry_id)
+        whitehall = self.get_station(whitehall_id)
 
         for sf_stop in south_ferry.get_stops():
             for wh_stop in whitehall.get_stops():
                 sf_stop.add_station_transfer(TransferSegment(sf_stop, wh_stop))
                 wh_stop.add_station_transfer(TransferSegment(wh_stop, sf_stop))
 
-    @staticmethod
-    def load_transfers(path, file_name, stations, stop_map):
+    def load_transfers(self, path, file_name, stop_map):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -161,8 +171,15 @@ class SubwaySystem:
             from_stop_id = row["from_stop_id"]
             to_stop_id = row["to_stop_id"]
 
-            from_station = stations[stop_map[from_stop_id]]
-            to_station = stations[stop_map[to_stop_id]]
+            from_station_id = stop_map[from_stop_id]
+            to_station_id = stop_map[to_stop_id]
+
+            # Skip this transfer if it involves a station not in our included set
+            if not self.is_valid_station(from_station_id) or not self.is_valid_station(to_station_id):
+                continue
+
+            from_station = self.get_station(from_station_id)
+            to_station = self.get_station(to_station_id)
 
             for from_stop in from_station.get_stops():
                 for to_stop in to_station.get_stops():
@@ -179,14 +196,13 @@ class SubwaySystem:
                         from_stop.add_station_transfer(transfer)
 
         # Add missing stop transfers
-        for station in stations.values():
+        for station in self.get_stations():
             SubwaySystem.add_stop_transfer(station)
 
         # Add manual transfers
-        SubwaySystem.add_manual_transfers(stations, stop_map)
+        self.add_manual_transfers(stop_map)
 
-    @staticmethod
-    def load_distances(path, file_name, stops):
+    def load_distances(self, path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -200,12 +216,14 @@ class SubwaySystem:
             from_stop_id = row["from_stop_id"]
             to_stop_id = row["to_stop_id"]
 
-            from_stop = stops[from_stop_id]
-            to_stop = stops[to_stop_id]
+            # Skip this stop if it's not in our included set
+            if not self.is_valid_stop(from_stop_id) or not self.is_valid_stop(to_stop_id):
+                continue
+
+            from_stop = self.get_stop(from_stop_id)
+            to_stop = self.get_stop(to_stop_id)
 
             from_stop.set_distance_km(to_stop, row["dist_km"])
-
-        return stops
 
     @staticmethod
     def calc_distances(stations):
@@ -217,25 +235,21 @@ class SubwaySystem:
     def load_basic_data(self, path):
 
         # Load route data
-        routes = self.load_routes(path, "routes.txt")
+        self.load_routes(path, "routes.txt")
 
         # Load stations, station complexes and mapping to stop IDs
-        stations, complexes, stop_map = self.load_stations(path, "stations.txt", self.get_station_filter())
+        stop_map = self.load_stations(path, "stations.txt")
 
         # Load stop data
-        stops = self.load_stops(path, "stops.txt", stations, stop_map)
+        self.load_stops(path, "stops.txt", stop_map)
 
         # Load transfer data
-        self.load_transfers(path, "transfers.txt", stations, stop_map)
+        self.load_transfers(path, "transfers.txt", stop_map)
 
         # Load distance between each pair of connecting stops
-        self.load_distances(path, "distances.txt", stops)
+        self.load_distances(path, "distances.txt")
 
         # Save output into instance
-        self.routes = routes
-        self.stations = stations
-        self.complexes = complexes
-        self.stops = stops
 
     def get_routes(self):
         return set(self.routes.values())
@@ -249,11 +263,17 @@ class SubwaySystem:
     def get_station(self, station_id):
         return self.stations[station_id]
 
+    def is_valid_station(self, station_id):
+        return station_id in self.stations
+
     def get_complexes(self):
         return set(self.complexes.values())
 
     def get_complex(self, complex_id):
         return self.complexes[complex_id]
+
+    def is_valid_complex(self, complex_id):
+        return complex_id in self.complexes
 
     def get_stops(self):
         return set(self.stops.values())
@@ -261,10 +281,13 @@ class SubwaySystem:
     def get_stop(self, stop_id):
         return self.stops[stop_id]
 
+    def is_valid_stop(self, stop_id):
+        return stop_id in self.stops
+
 
 class SubwayLinkSystem(SubwaySystem):
 
-    def __init__(self, path, station_filter=None):
+    def __init__(self, path, station_filter=lambda x: True):
         super().__init__(station_filter)
         self.load_basic_data(path)
         self.load_link_data(path)
@@ -283,6 +306,10 @@ class SubwayLinkSystem(SubwaySystem):
             from_stop_id = row["from_stop_id"]
             to_stop_id = row["to_stop_id"]
 
+            # Skip this link if one or both of the stops is not in our available set
+            if not self.is_valid_stop(from_stop_id) or not self.is_valid_stop(to_stop_id):
+                continue
+
             from_stop = self.get_stop(from_stop_id)
             to_stop = self.get_stop(to_stop_id)
 
@@ -299,7 +326,7 @@ class SubwayLinkSystem(SubwaySystem):
 
 class SubwayConnectionSystem(SubwaySystem):
 
-    def __init__(self, path, station_filter=None):
+    def __init__(self, path, station_filter=lambda x: True):
         super().__init__(station_filter)
         self.load_basic_data(path)
         self.load_connection_data(path)
@@ -313,12 +340,17 @@ class SubwayConnectionSystem(SubwaySystem):
         print("Loading connection data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
+        stops = self.get_stops()
+
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
 
             from_stop_id = row["from_stop_id"]
             to_stop_id = row["to_stop_id"]
             route_id = row["route_id"]
+
+            if not self.is_valid_stop(from_stop_id) or not self.is_valid_stop(to_stop_id):
+                continue
 
             from_stop = self.get_stop(from_stop_id)
             to_stop = self.get_stop(to_stop_id)
@@ -337,7 +369,7 @@ class SubwayConnectionSystem(SubwaySystem):
 
 class SubwayTripSystem(SubwaySystem):
 
-    def __init__(self, path, station_filter=None):
+    def __init__(self, path, station_filter=lambda x: True):
         super().__init__(station_filter)
         self.trips = {}
         self.timetable = None

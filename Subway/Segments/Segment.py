@@ -56,4 +56,4 @@ class EndingSegment(Segment):
         super().__init__(stop, stop)
 
     def __str__(self):
-        return "End: %s [%d]" % self.get_to_station()
+        return "End: %s" % self.get_to_station()

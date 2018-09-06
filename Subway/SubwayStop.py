@@ -41,6 +41,9 @@ class SubwayStop:
     def is_terminal(self):
         return len(self.get_ride_segments()) == 0
 
+    def is_passthrough(self):
+        return len(self.get_ride_segments()) == 1 and len(self.get_station_transfer_segments()) == 0
+
     def set_distance_km(self, to_stop, dist_km):
         self.distances_km[to_stop] = dist_km
         return self
