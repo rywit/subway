@@ -105,6 +105,41 @@ def distance_in_transfers(stations):
         print("%s to %s: %d" % (res["from"], res["to"], res["dist"]))
 
 
+def average_distance_km(stations):
+
+    distances = []
+
+    for from_station in stations:
+
+        cur_dist = []
+
+        for to_station in stations:
+
+            if from_station == to_station:
+                continue
+
+            dist = from_station.get_distance_km(to_station)
+            cur_dist.append(dist)
+
+        avg = sum(cur_dist) / len(cur_dist)
+        distances.append({"station": from_station, "avg_dist": avg})
+
+    sorted_dist = sorted(distances, key=lambda x: x["avg_dist"])
+
+    print("Average Distance km---")
+    print("Closest stations:")
+
+    for i in range(5):
+        res = sorted_dist[i]
+        print("%s: %.2f km" % (res["station"], res["avg_dist"]))
+
+    print("Furthest stations:")
+
+    for i in range(-1, -6, -1):
+        res = sorted_dist[i]
+        print("%s: %.2f km" % (res["station"], res["avg_dist"]))
+
+
 def main():
 
     # Load the data from disk
@@ -124,6 +159,8 @@ def main():
     distance_in_rides(stations)
 
     distance_in_transfers(stations)
+
+    average_distance_km(stations)
 
 
 if __name__ == "__main__":

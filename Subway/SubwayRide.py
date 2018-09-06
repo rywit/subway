@@ -15,10 +15,13 @@ class SubwayRide:
             self.stations.add(seg.get_from_station())
             self.stations.add(seg.get_to_station())
 
+    def clone(self):
+        return SubwayRide(list(self.get_segments()))
+
     def get_segments(self):
         return self.segments
 
-    def get_stations(self):
+    def get_visited_stations(self):
         return self.stations
 
     def get_subset(self, n):
@@ -46,15 +49,6 @@ class SubwayRide:
     def get_current_stop(self):
         return self.get_last_segment().get_to_stop()
 
-    def get_current_time_ts(self):
-        return self.get_last_segment().get_stop_time_ts()
-
-    def get_current_route(self):
-        return self.get_last_segment().get_route()
-
-    def get_current_direction_id(self):
-        return self.get_last_segment().get_direction_id()
-
     def is_beginning(self):
         return isinstance(self.get_last_segment(), StartingSegment)
 
@@ -74,7 +68,7 @@ class SubwayRide:
         return len(self.get_transfer_segments())
 
     def get_num_stations(self):
-        return len(self.get_stations())
+        return len(self.get_visited_stations())
 
     def get_ride_distance_km(self):
         return sum([seg.get_distance_km() for seg in self.get_ride_segments()])
@@ -98,29 +92,3 @@ class SubwayRide:
             if isinstance(segment1, TransferSegment) and isinstance(segment2, TransferSegment):
                 segments[i] = segment1.merge(segment2)
                 del segments[i+1]
-
-    def get_summary_segments(self):
-
-        summary = []
-        cur_ride = None
-
-        for seg in self.get_segments():
-            if isinstance(seg, StartingSegment):
-                summary.append(seg)
-            elif isinstance(seg, EndingSegment):
-                summary.append(cur_ride)
-                summary.append(seg)
-            elif isinstance(seg, RideSegment):
-                if cur_ride is None:
-                    cur_ride = seg
-                elif cur_ride.get_trip() == seg.get_trip():
-                    cur_ride = cur_ride.merge(seg)
-                else:
-                    summary.append(cur_ride)
-                    cur_ride = seg
-            elif isinstance(seg, TransferSegment):
-                summary.append(cur_ride)
-                summary.append(seg)
-                cur_ride = None
-
-        return summary

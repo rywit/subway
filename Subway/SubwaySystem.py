@@ -5,11 +5,15 @@ import pandas as pd
 
 class SubwaySystem:
 
-    def __init__(self):
+    def __init__(self, station_filter):
         self.routes = {}
         self.complexes = {}
         self.stations = {}
         self.stops = {}
+        self.station_filter = station_filter
+
+    def get_station_filter(self):
+        return self.station_filter
 
     @staticmethod
     def load_routes(path, file_name):
@@ -30,7 +34,7 @@ class SubwaySystem:
         return routes
 
     @staticmethod
-    def load_stations(path, file_name):
+    def load_stations(path, file_name, station_filter):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -61,6 +65,11 @@ class SubwaySystem:
                 complex_map.setdefault(complex_id, set()).add(station)
 
             stop_map[stop_id] = station_id
+
+        if station_filter is not None:
+            for station_id, station in stations.items():
+                if not station_filter(station):
+                    del stations[station_id]
 
         # Manually add South Ferry Loop
         stop_map["140"] = "330"
@@ -211,7 +220,7 @@ class SubwaySystem:
         routes = self.load_routes(path, "routes.txt")
 
         # Load stations, station complexes and mapping to stop IDs
-        stations, complexes, stop_map = self.load_stations(path, "stations.txt")
+        stations, complexes, stop_map = self.load_stations(path, "stations.txt", self.get_station_filter())
 
         # Load stop data
         stops = self.load_stops(path, "stops.txt", stations, stop_map)
@@ -255,8 +264,8 @@ class SubwaySystem:
 
 class SubwayLinkSystem(SubwaySystem):
 
-    def __init__(self, path):
-        super().__init__()
+    def __init__(self, path, station_filter=None):
+        super().__init__(station_filter)
         self.load_basic_data(path)
         self.load_link_data(path)
 
@@ -290,8 +299,8 @@ class SubwayLinkSystem(SubwaySystem):
 
 class SubwayConnectionSystem(SubwaySystem):
 
-    def __init__(self, path):
-        super().__init__()
+    def __init__(self, path, station_filter=None):
+        super().__init__(station_filter)
         self.load_basic_data(path)
         self.load_connection_data(path)
 
@@ -328,8 +337,8 @@ class SubwayConnectionSystem(SubwaySystem):
 
 class SubwayTripSystem(SubwaySystem):
 
-    def __init__(self, path):
-        super().__init__()
+    def __init__(self, path, station_filter=None):
+        super().__init__(station_filter)
         self.trips = {}
         self.timetable = None
         self.load_basic_data(path)
