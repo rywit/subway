@@ -101,3 +101,6 @@ class SubwayRide:
             if isinstance(segment1, TransferSegment) and isinstance(segment2, TransferSegment):
                 segments[i] = segment1.merge(segment2)
                 del segments[i+1]
+
+    def __str__(self):
+        return "\n".join(map(str, self.get_segments()))
