@@ -3,12 +3,20 @@ class StationComplex:
     def __init__(self, complex_id, stations):
         self.complex_id = complex_id
         self.stations = stations
+        self.ridership = None
 
     def get_id(self):
         return self.complex_id
 
     def get_stations(self):
         return self.stations
+
+    def set_ridership(self, ridership):
+        self.ridership = ridership
+        return self
+
+    def get_ridership(self):
+        return self.ridership
 
     def get_stops(self):
         stops = set()

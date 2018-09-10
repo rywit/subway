@@ -189,10 +189,10 @@ class SubwaySystem:
                         continue
 
                     if from_station == to_station:
-                        transfer = TransferSegment(from_stop, to_stop)
+                        transfer = StopTransferSegment(from_stop, to_stop)
                         from_stop.add_stop_transfer_segment(transfer)
                     else:
-                        transfer = TransferSegment(from_stop, to_stop)
+                        transfer = StationTransferSegment(from_stop, to_stop)
                         from_stop.add_station_transfer(transfer)
 
         # Add missing stop transfers
@@ -225,6 +225,28 @@ class SubwaySystem:
 
             from_stop.set_distance_km(to_stop, row["dist_km"])
 
+    def load_ridership(self, path, file_name):
+
+        # Build full path to file
+        full_path = "/".join([path, file_name])
+
+        # Read data from disk
+        print("Loading ridership data from '%s'" % full_path)
+        data = pd.read_csv(full_path)
+
+        # Iterate through each row in the data set
+        for idx, row in data.iterrows():
+            complex_id = row["complex_id"]
+            ridership_2017 = row["ridership_2017"]
+
+            # Skip this stop if it's not in our included set
+            if not self.is_valid_complex(complex_id):
+                continue
+
+            station_complex = self.get_complex(complex_id)
+
+            station_complex.set_ridership(ridership_2017)
+
     @staticmethod
     def calc_distances(stations):
         for station in stations:
@@ -249,7 +271,8 @@ class SubwaySystem:
         # Load distance between each pair of connecting stops
         self.load_distances(path, "distances.txt")
 
-        # Save output into instance
+        # Load ridership data
+        self.load_ridership(path, "ridership.txt")
 
     def get_routes(self):
         return set(self.routes.values())

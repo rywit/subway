@@ -63,6 +63,9 @@ class SubwayRide:
     def is_complete(self):
         return isinstance(self.get_last_segment(), EndingSegment)
 
+    def is_error(self):
+        return isinstance(self.get_last_segment(), ErrorSegment)
+
     def just_transferred(self):
         return isinstance(self.get_last_segment(), TransferSegment)
 
@@ -102,5 +105,5 @@ class SubwayRide:
                 segments[i] = segment1.merge(segment2)
                 del segments[i+1]
 
-    def __str__(self):
+    def print(self):
         return "\n".join(map(str, self.get_segments()))

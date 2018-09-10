@@ -5,7 +5,7 @@ from Subway.RouteChoosers import *
 def main():
 
     def station_filter(station):
-        return station.get_borough() == "Bk"
+        return station.get_borough() == "M"
 
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
