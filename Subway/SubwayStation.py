@@ -74,28 +74,40 @@ class SubwayStation:
         return self
 
     def get_distance_rides(self, to_station):
-        return self.distances_rides[to_station]
+        if isinstance(to_station, SubwayStation):
+            return self.distances_rides[to_station]
+        else:
+            return min([self.distances_rides[station] for station in to_station])
 
     def calc_distances_transfers(self):
         self.distances_transfers = SubwayStation.calc_station_distance_transfers({self})
         return self
 
     def get_distance_transfers(self, to_station):
-        return self.distances_transfers[to_station]
+        if isinstance(to_station, SubwayStation):
+            return self.distances_transfers[to_station]
+        else:
+            return min([self.distances_transfers[station] for station in to_station])
 
     def calc_distances_segments(self):
         self.distances_segments = SubwayStation.calc_station_distance_segments({self})
         return self
 
     def get_distance_segments(self, to_station):
-        return self.distances_segments[to_station]
+        if isinstance(to_station, SubwayStation):
+            return self.distances_segments[to_station]
+        else:
+            return min([self.distances_segments[station] for station in to_station])
 
     def calc_distances_km(self):
         self.distances_km = SubwayStation.calc_station_distance_km(self)
         return self
 
     def get_distance_km(self, to_station):
-        return self.distances_km[to_station]
+        if isinstance(to_station, SubwayStation):
+            return self.distances_km[to_station]
+        else:
+            return min([self.distances_km[station] for station in to_station])
 
     def is_terminal(self):
 

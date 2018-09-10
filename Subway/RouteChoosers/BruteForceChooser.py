@@ -1,5 +1,5 @@
 from Subway.SubwayRide import *
-
+import collections
 
 class BruteForceChooser:
 
@@ -179,3 +179,111 @@ class ShortestPathChooser:
             return None
         else:
             return lengths[0]
+
+
+class ShortestPathChooser2:
+
+    def __init__(self, length_limit):
+        super().__init__()
+        self.length_limit = length_limit
+
+    def reset_limit(self, limit):
+        print("Resetting depth limit to %d" % limit)
+        self.length_limit = limit
+
+    def get_limit(self):
+        return self.length_limit
+
+    def get_route(self, starting_stop, to_visit):
+
+        print("Finding shortest route from %s" % starting_stop)
+        ride = SubwayRide(StartingSegment(starting_stop))
+
+        return self.get_shortest_path(ride, to_visit)
+
+    @staticmethod
+    def get_available_segments(ride, unvisited):
+
+        cur_station = ride.get_current_station()
+        cur_stop = ride.get_current_stop()
+
+        # Distance to closest unvisited station
+        cur_dist = cur_station.get_distance_segments(unvisited)
+
+        rides = []
+
+        for ride in cur_stop.get_ride_segments():
+            dist = ride.get_to_station().get_distance_segments(unvisited)
+
+            if dist < cur_dist:
+                rides.append(ride)
+
+        station_trans = []
+
+        for tran in cur_stop.get_station_transfer_segments():
+            dist = tran.get_to_station().get_distance_segments(unvisited)
+
+            if dist < cur_dist:
+                station_trans.append(tran)
+
+        stop_trans = cur_stop.get_stop_transfer_segments()
+
+        return rides, station_trans, stop_trans
+
+    def get_shortest_path(self, starting_ride, to_visit):
+
+        queue = collections.deque()
+        queue.append(starting_ride)
+
+        shortest = {}
+
+        # Keep processing as long as there are paths in the queue
+        while queue:
+            ride = queue.popleft()
+
+            # Skip this ride if its longer than our limit
+            if ride.get_length() > self.get_limit():
+                continue
+
+            visited = ride.get_visited_stations()
+            unvisited = to_visit - visited
+
+            if len(unvisited) == 0:
+                self.reset_limit(ride.get_length())
+                return ride.add_segment(EndingSegment(ride.get_current_stop()))
+
+            # Get available segments (ride, station transfer and stop transfer)
+            rides, station_trans, stop_trans = self.get_available_segments(ride, unvisited)
+
+            available = rides.copy()
+
+            if not ride.just_transferred() and not ride.is_beginning():
+                available.extend(station_trans)
+                available.extend(stop_trans)
+
+            # We can't go anywhere
+            if len(available) == 0:
+                continue
+
+            for seg in available:
+
+                new_ride = ride.clone()
+                new_ride.add_segment(seg)
+
+                to_stop = seg.get_to_stop()
+
+                visited = new_ride.get_visited_stations() & to_visit
+                num_visited = len(visited)
+
+                shortest.setdefault(to_stop, 0)
+
+                if num_visited > shortest[to_stop]:
+                    queue.append(new_ride)
+                    shortest[to_stop] = num_visited
+
+                    if len(queue) % 10000 == 0:
+                        print("Queue len: %d" % len(queue))
+                        print("Visited: %d" % num_visited)
+
+        print("Queue is empty")
+        return None

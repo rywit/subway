@@ -18,6 +18,9 @@ class StationComplex:
     def get_ridership(self):
         return self.ridership
 
+    def get_proportional_ridership(self):
+        return self.get_ridership() / len(self.get_stations())
+
     def get_stops(self):
         stops = set()
 

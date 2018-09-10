@@ -1,7 +1,7 @@
 from Subway import *
 from Subway.Segments import *
 import pandas as pd
-
+import math
 
 class SubwaySystem:
 
@@ -234,6 +234,9 @@ class SubwaySystem:
         print("Loading ridership data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
+        # Convert complex IDs to strings (instead of int)
+        data["complex_id"] = data["complex_id"].apply(str)
+
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
             complex_id = row["complex_id"]
@@ -242,6 +245,10 @@ class SubwaySystem:
             # Skip this stop if it's not in our included set
             if not self.is_valid_complex(complex_id):
                 continue
+
+            # Treat missing ridership data as zero (e.g. new stations and Cortlandt St)
+            if math.isnan(ridership_2017):
+                ridership_2017 = 0.0
 
             station_complex = self.get_complex(complex_id)
 
