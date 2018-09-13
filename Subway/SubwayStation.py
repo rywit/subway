@@ -12,8 +12,11 @@ class SubwayStation:
         self.station_complex = None
         self.stops = set()
         self.distances_rides = {}
+        self.paths_rides = {}
         self.distances_transfers = {}
+        self.paths_transfers = {}
         self.distances_segments = {}
+        self.paths_segments = {}
         self.distances_km = {}
 
     def get_id(self):
@@ -70,7 +73,9 @@ class SubwayStation:
         return stations
 
     def calc_distances_rides(self):
-        self.distances_rides = SubwayStation.calc_station_distance_rides({self})
+        depths, paths = SubwayStation.calc_station_distance_rides(self)
+        self.distances_rides = depths
+        self.paths_rides = paths
         return self
 
     def get_distance_rides(self, to_station):
@@ -79,8 +84,18 @@ class SubwayStation:
         else:
             return min([self.distances_rides[station] for station in to_station])
 
+    def get_path_rides(self, to_station):
+        if isinstance(to_station, SubwayStation):
+            return self.paths_rides[to_station]
+        else:
+            segs = [self.paths_rides[station] for station in to_station]
+            lens = [len(x) for x in segs]
+            return segs[lens.index(min(lens))]
+
     def calc_distances_transfers(self):
-        self.distances_transfers = SubwayStation.calc_station_distance_transfers({self})
+        depths, paths = SubwayStation.calc_station_distance_transfers(self)
+        self.distances_transfers = depths
+        self.paths_transfers = paths
         return self
 
     def get_distance_transfers(self, to_station):
@@ -89,8 +104,18 @@ class SubwayStation:
         else:
             return min([self.distances_transfers[station] for station in to_station])
 
+    def get_path_transfers(self, to_station):
+        if isinstance(to_station, SubwayStation):
+            return self.paths_transfers[to_station]
+        else:
+            segs = [self.paths_transfers[station] for station in to_station]
+            lens = [len(x) for x in segs]
+            return segs[lens.index(min(lens))]
+
     def calc_distances_segments(self):
-        self.distances_segments = SubwayStation.calc_station_distance_segments({self})
+        depths, paths = SubwayStation.calc_station_distance_segments(self)
+        self.distances_segments = depths
+        self.paths_segments = paths
         return self
 
     def get_distance_segments(self, to_station):
@@ -98,6 +123,14 @@ class SubwayStation:
             return self.distances_segments[to_station]
         else:
             return min([self.distances_segments[station] for station in to_station])
+
+    def get_path_segments(self, to_station):
+        if isinstance(to_station, SubwayStation):
+            return self.paths_segments[to_station]
+        else:
+            segs = [self.paths_segments[station] for station in to_station]
+            lens = [len(x) for x in segs]
+            return segs[lens.index(min(lens))]
 
     def calc_distances_km(self):
         self.distances_km = SubwayStation.calc_station_distance_km(self)
@@ -147,94 +180,103 @@ class SubwayStation:
         return self.get_id() <= other.get_id()
 
     @staticmethod
-    def calc_station_distance_rides(stations, depth=0, rides=None):
+    def calc_station_distance_rides(station, depth=0, depths=None, paths=None, cur_path=None):
 
-        if rides is None:
-            rides = {}
+        if depths is None:
+            depths = {}
+            paths = {}
+            cur_path = []
 
-        new_stations = set()
+        should_recurse = False
 
-        for station in stations:
+        if station not in depths:
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
+        elif depth < depths[station]:
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
+        elif depth == depths[station] and len(cur_path) < len(paths[station]):
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
 
-            if station not in rides or depth < rides[station]:
-                rides[station] = depth
-                new_stations.add(station)
-
-        to_visit_same = set()
-        to_visit_down = set()
-
-        # Set the distance for each of the stations
-        for station in new_stations:
-
+        if should_recurse:
             for neighbor in station.get_connecting_ride_stations():
-                to_visit_down.add(neighbor)
+                new_path = cur_path.copy()
+                new_path.append(neighbor)
+                SubwayStation.calc_station_distance_transfers(neighbor, depth + 1, depths, paths, new_path)
 
             for neighbor in station.get_connecting_transfer_stations():
-                to_visit_same.add(neighbor)
+                new_path = cur_path.copy()
+                new_path.append(neighbor)
+                SubwayStation.calc_station_distance_transfers(neighbor, depth, depths, paths, new_path)
 
-        if len(to_visit_same) > 0:
-            SubwayStation.calc_station_distance_rides(to_visit_same, depth, rides)
-
-        if len(to_visit_down) > 0:
-            SubwayStation.calc_station_distance_rides(to_visit_down, depth + 1, rides)
-
-        return rides
+        return depths, paths
 
     @staticmethod
-    def calc_station_distance_transfers(stations, depth=0, transfers=None):
+    def calc_station_distance_transfers(station, depth=0, depths=None, paths=None, cur_path=None):
 
-        if transfers is None:
-            transfers = {}
+        if depths is None:
+            depths = {}
+            paths = {}
+            cur_path = []
 
-        new_stations = set()
+        should_recurse = False
 
-        for station in stations:
+        if station not in depths:
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
+        elif depth < depths[station]:
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
+        elif depth == depths[station] and len(cur_path) < len(paths[station]):
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
 
-            if station not in transfers or depth < transfers[station]:
-                transfers[station] = depth
-                new_stations.add(station)
-
-        to_visit_same = set()
-        to_visit_down = set()
-
-        # Set the distance for each of the stations
-        for station in new_stations:
-
+        if should_recurse:
             for neighbor in station.get_connecting_ride_stations():
-                to_visit_same.add(neighbor)
+                new_path = cur_path.copy()
+                new_path.append(neighbor)
+                SubwayStation.calc_station_distance_transfers(neighbor, depth, depths, paths, new_path)
 
             for neighbor in station.get_connecting_transfer_stations():
-                to_visit_down.add(neighbor)
+                new_path = cur_path.copy()
+                new_path.append(neighbor)
+                SubwayStation.calc_station_distance_transfers(neighbor, depth + 1, depths, paths, new_path)
 
-        if len(to_visit_same) > 0:
-            SubwayStation.calc_station_distance_transfers(to_visit_same, depth, transfers)
-
-        if len(to_visit_down) > 0:
-            SubwayStation.calc_station_distance_transfers(to_visit_down, depth + 1, transfers)
-
-        return transfers
+        return depths, paths
 
     @staticmethod
-    def calc_station_distance_segments(stations, depth=0, segments=None):
+    def calc_station_distance_segments(station, depth=0, depths=None, paths=None, cur_path=None):
 
-        if segments is None:
-            segments = {}
+        if depths is None:
+            depths = {}
+            paths = {}
+            cur_path = []
 
-        to_visit = set()
+        should_recurse = False
 
-        # Set the distance for each of the stations
-        for station in stations:
-            if station not in segments:
-                segments[station] = depth
+        if station not in depths:
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
+        elif depth < depths[station]:
+            depths[station] = depth
+            paths[station] = cur_path
+            should_recurse = True
 
+        if should_recurse:
             for neighbor in station.get_connecting_stations():
-                if neighbor not in segments:
-                    to_visit.add(neighbor)
+                new_path = cur_path.copy()
+                new_path.append(neighbor)
+                SubwayStation.calc_station_distance_segments(neighbor, depth + 1, depths, paths, new_path)
 
-        if len(to_visit) > 0:
-            SubwayStation.calc_station_distance_segments(to_visit, depth + 1, segments)
-
-        return segments
+        return depths, paths
 
     @staticmethod
     def calc_station_distance_km(station, dist=0, distances=None):
