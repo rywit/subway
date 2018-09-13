@@ -1,6 +1,5 @@
 from Subway import *
 from Subway.RouteChoosers import *
-import random
 
 
 def get_lengths(chooser, to_visit):
@@ -9,6 +8,10 @@ def get_lengths(chooser, to_visit):
 
     for station in sorted(to_visit):
         for stop in station.get_stops():
+
+            if stop.get_id() != "101S":
+                continue
+
             shortest = chooser.get_route(stop, to_visit)
 
             if shortest is not None and not shortest.is_error():
@@ -20,14 +23,13 @@ def get_lengths(chooser, to_visit):
 def main():
 
     def station_filter(station):
-        # return station.get_borough() == "Q" or station.get_borough() == "Bk"
-        return station.get_borough() == "Bk"
+        return station.get_borough() == "M" or station.get_borough() == "Bx"
 
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
-    to_visit = set([station for station in system.get_stations() if station.get_borough() == "Bk"])
+    to_visit = set([station for station in system.get_stations() if station.get_borough() == "Bx"])
 
-    chooser = ShortestPathChooser2(500)
+    chooser = ShortestPathChooser2(5000)
 
     lens = get_lengths(chooser, to_visit)
 

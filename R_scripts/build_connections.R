@@ -27,7 +27,7 @@ connections <- weekday.trips %>%
   select( -c( trip_id, stop_sequence, next_stop_sequence ) ) %>%
   distinct()
 
-write.csv( connections, "connections.txt", quote = F, row.names = F )
+write.csv( connections, "data/connections.txt", quote = F, row.names = F )
 
 # Direct connections between stops (i.e. remove express trains)
 stop.diffs <- weekday.trips %>%
@@ -46,6 +46,9 @@ links <- connections %>%
   select( from_stop_id, to_stop_id ) %>%
   distinct()
 
+# Move Aqueduct Racetrack into two-way station
+links <- links %>%
+  filter( !( from_stop_id == "A61S" & to_stop_id == "H02S" ) ) %>%
+  rbind( data.frame( from_stop_id = c( "A61S", "H01S" ), to_stop_id = c( "H01S", "H02S" ) ) )
+
 write.csv( links, "data/links.txt", quote = F, row.names = F )
-
-

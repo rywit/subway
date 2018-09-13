@@ -26,8 +26,15 @@ class SubwayRide:
     def get_segments(self):
         return self.segments
 
-    def get_visited_stations(self):
-        return self.stations
+    def get_visited_stations(self, to_visit=None):
+
+        if to_visit is None:
+            return self.stations
+        else:
+            return set([station for station in self.stations if station in to_visit])
+
+    def get_num_visited_stations(self, to_visit=None):
+        return len(self.get_visited_stations(to_visit))
 
     def get_subset(self, n):
         segments = self.get_segments()[:n]

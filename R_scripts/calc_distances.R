@@ -29,6 +29,10 @@ shapes <- read.csv( "data/shapes.txt", stringsAsFactors = F )
 stops <- read.csv( "data/stops.txt", stringsAsFactors = F )
 stop.times <- read.csv( "data/stop_times.txt", stringsAsFactors = F )
 
+# Insert correct coordinates for Aqueduct Racetrack
+stops[ stops$parent_station == "H01", "stop_lat" ] <- 40.672086
+stops[ stops$parent_station == "H01", "stop_lon" ] <- -73.835914
+
 # Calculate the distance (in km) between pairs of shape sequence points
 distances <- shapes %>%
   select( -c( shape_dist_traveled ) ) %>%
@@ -91,11 +95,11 @@ shortest.rides <- shape.dist %>%
 # Calculate "as the crow flies" distances between all pairs of stops
 straight.dist <- stops %>%
   filter( location_type == "0" ) %>%
-  filter( grepl( "^(S|D26|90)", stop_id ) ) %>%
+  filter( grepl( "^(S|D26|90|H01S|A61S)", stop_id ) ) %>%
   select( stop_id, stop_lat, stop_lon, location_type ) %>%
   rename( "from_stop_id" = "stop_id", "lat1" = "stop_lat", "lon1" = "stop_lon" ) %>%
   inner_join( stops, by = "location_type" ) %>%
-  filter( grepl( "^(S|D26|90)", stop_id ) ) %>%
+  filter( grepl( "^(S|D26|90|H01S|H02S)", stop_id ) ) %>%
   rename( "to_stop_id" = "stop_id", "lat2" = "stop_lat", "lon2" = "stop_lon" ) %>%
   select( from_stop_id, to_stop_id, lat1, lon1, lat2, lon2 ) %>%
   mutate( dist_km = calc.distance(lat1, lon1, lat2, lon2 ) ) %>%
@@ -107,4 +111,3 @@ shortest.routes <- rbind( shortest.rides, straight.dist )
 
 # Write to disk
 write.csv( shortest.routes, "data/distances.txt", quote = F, na = "", row.names = F )
-
