@@ -254,16 +254,33 @@ class SubwaySystem:
 
             station_complex.set_ridership(ridership_2017)
 
-    @staticmethod
-    def calc_distances(stations):
+    def calc_transfer_distances(self):
 
-        print("Calculating station distances")
+        print("Calculating station transfer distances")
 
-        for station in stations:
-            print(station)
+        for station in self.get_stations():
             station.calc_distances_transfers()
+
+    def calc_ride_distances(self):
+
+        print("Calculating station ride distances")
+
+        for station in self.get_stations():
             station.calc_distances_rides()
+
+    def calc_segment_distances(self):
+
+        print("Calculating station segment distances")
+
+        for station in self.get_stations():
             station.calc_distances_segments()
+
+    def calc_km_distances(self):
+
+        print("Calculating station km distances")
+
+        for station in self.get_stations():
+            station.calc_distances_km()
 
     def load_basic_data(self, path):
 
@@ -354,27 +371,6 @@ class SubwayLinkSystem(SubwaySystem):
         # Build link data
         self.load_links(path, "links.txt")
 
-        # Calculate distance between pairs of stations
-        self.calc_distances(self.get_stations())
-
-    @staticmethod
-    def build_ride(stations):
-        segments = []
-        segments.append(StartingSegment(stations[0]))
-
-        num_stations = len(stations)
-
-        for i in range(1, num_stations):
-            from_station = stations[i-1]
-            to_station = stations[i]
-
-            segment = from_station.get_segment_to_station(to_station)
-            segments.append(segment)
-
-        segments.append(EndingSegment(stations[-1]))
-
-        return SubwayRide(segments=segments)
-
 
 class SubwayConnectionSystem(SubwaySystem):
 
@@ -414,9 +410,6 @@ class SubwayConnectionSystem(SubwaySystem):
 
         # Build connection data
         self.load_connections(path, "connections.txt")
-
-        # Calculate distance between pairs of stations
-        self.calc_distances(self.get_stations())
 
 
 class SubwayTripSystem(SubwaySystem):

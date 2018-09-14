@@ -29,7 +29,7 @@ class SubwayStop:
             if ride.get_to_stop() == to_stop:
                 return ride
 
-        for transfer in self.get_transfer_segments():
+        for transfer in self.get_station_transfer_segments():
             if transfer.get_to_stop() == to_stop:
                 return transfer
 

@@ -11,13 +11,10 @@ def main():
 
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
+    system.calc_ride_distances()
 
 #    stations = sorted(filter(lambda x: x.get_borough() == "Bk", system.get_stations()))
     stations = sorted(system.get_stations())
-
-    # for station in stations:
-    #     print("Calculating: %s" % station)
-    #     station.calc_distances_km()
 
     rows = []
 

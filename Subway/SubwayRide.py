@@ -114,3 +114,31 @@ class SubwayRide:
 
     def print(self):
         return "\n".join(map(str, self.get_segments()))
+
+    @staticmethod
+    def build_ride(stations):
+        segments = []
+
+        num_stations = len(stations)
+
+        for i in range(1, num_stations):
+            from_station = stations[i-1]
+            to_station = stations[i]
+
+            path = from_station.get_path_segments(to_station)
+
+            for j in range(1, len(path)):
+                from_station = path[j-1]
+                to_station = path[j]
+
+                segments.append(from_station.get_segment_to_station(to_station))
+
+        starting_stop = segments[0].get_from_stop()
+        segments.insert(0, StartingSegment(starting_stop))
+
+        ending_stop = segments[-1].get_to_stop()
+        segments.append(EndingSegment(ending_stop))
+
+        return SubwayRide(segments=segments)
+
+
