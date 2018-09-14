@@ -256,7 +256,11 @@ class SubwaySystem:
 
     @staticmethod
     def calc_distances(stations):
+
+        print("Calculating station distances")
+
         for station in stations:
+            print(station)
             station.calc_distances_transfers()
             station.calc_distances_rides()
             station.calc_distances_segments()
@@ -352,6 +356,24 @@ class SubwayLinkSystem(SubwaySystem):
 
         # Calculate distance between pairs of stations
         self.calc_distances(self.get_stations())
+
+    @staticmethod
+    def build_ride(stations):
+        segments = []
+        segments.append(StartingSegment(stations[0]))
+
+        num_stations = len(stations)
+
+        for i in range(1, num_stations):
+            from_station = stations[i-1]
+            to_station = stations[i]
+
+            segment = from_station.get_segment_to_station(to_station)
+            segments.append(segment)
+
+        segments.append(EndingSegment(stations[-1]))
+
+        return SubwayRide(segments=segments)
 
 
 class SubwayConnectionSystem(SubwaySystem):

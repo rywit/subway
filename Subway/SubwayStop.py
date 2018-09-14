@@ -24,6 +24,15 @@ class SubwayStop:
     def get_ride_segments(self):
         return self.connections
 
+    def get_segment_to_stop(self, to_stop):
+        for ride in self.get_ride_segments():
+            if ride.get_to_stop() == to_stop:
+                return ride
+
+        for transfer in self.get_transfer_segments():
+            if transfer.get_to_stop() == to_stop:
+                return transfer
+
     def add_stop_transfer_segment(self, transfer):
         self.stop_transfers.add(transfer)
         return self
