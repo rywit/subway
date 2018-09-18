@@ -16,6 +16,10 @@ class Segment:
     def get_to_station(self):
         return self.get_to_stop().get_station()
 
+    def reset_to_stop(self, to_stop):
+        self.to_stop = to_stop
+        return self
+
 
 class StartingSegment(Segment):
 
@@ -28,9 +32,9 @@ class StartingSegment(Segment):
 
 class RideSegment(Segment):
 
-    def __init__(self, from_stop, to_stop):
+    def __init__(self, from_stop, to_stop, num_stops=1):
         super().__init__(from_stop, to_stop)
-        self.ride_id = "%s/%s" % (from_stop.get_id(), to_stop.get_id())
+        self.num_stops = num_stops
 
     def __hash__(self):
         return hash(self.get_id())
@@ -39,20 +43,26 @@ class RideSegment(Segment):
         return isinstance(other, RideSegment) and self.get_id() == other.get_id()
 
     def get_id(self):
-        return self.ride_id
+        return "%s/%s" % (self.get_from_stop().get_id(), self.get_to_stop().get_id())
 
     def get_distance_km(self):
         return self.get_from_stop().get_distance_km(self.get_to_stop())
+
+    def get_num_stops(self):
+        return self.num_stops
+
+    def reset_num_stops(self, other_num_stops):
+        self.num_stops += other_num_stops
+        return self
 
 
 class TransferSegment(Segment):
 
     def __init__(self, from_stop, to_stop):
         super().__init__(from_stop, to_stop)
-        self.transfer_id = "%s/%s" % (from_stop.get_id(), to_stop.get_id())
 
     def get_id(self):
-        return self.transfer_id
+        return "%s/%s" % (self.get_from_stop().get_id(), self.get_to_stop().get_id())
 
     def get_distance_km(self):
         return 0
@@ -65,6 +75,9 @@ class TransferSegment(Segment):
 
     def __eq__(self, other):
         return isinstance(other, TransferSegment) and self.get_id() == other.get_id()
+
+    def merge(self, other):
+        return self.reset_to_stop(other.get_to_stop())
 
 
 class StationTransferSegment(TransferSegment):

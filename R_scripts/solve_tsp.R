@@ -1,4 +1,5 @@
-library("TSP")
+library( TSP )
+library( jsonlite )
 
 concorde_path("C:\\cygwin32\\home\\Witko PC\\tsp")
 
@@ -31,7 +32,9 @@ path <- cut_tour( ctour, "cut" )
 # Print the ordered labels
 labels( path )
 
+stations <- gsub( "X", "", labels(path))
 
+write( toJSON( stations ), "data/longest_path.json" )
 
 
 

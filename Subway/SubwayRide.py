@@ -108,7 +108,10 @@ class SubwayRide:
             segment1 = segments[i]
             segment2 = segments[i+1]
 
-            if isinstance(segment1, TransferSegment) and isinstance(segment2, TransferSegment):
+            both_rides = isinstance(segment1, RideSegment) and isinstance(segment2, RideSegment)
+            both_transfers = isinstance(segment1, TransferSegment) and isinstance(segment2, TransferSegment)
+
+            if both_rides or both_transfers:
                 segments[i] = segment1.merge(segment2)
                 del segments[i+1]
 
@@ -116,7 +119,7 @@ class SubwayRide:
         return "\n".join(map(str, self.get_segments()))
 
     @staticmethod
-    def build_ride(stations):
+    def build_ride_from_links(stations):
         segments = []
 
         num_stations = len(stations)
@@ -132,6 +135,15 @@ class SubwayRide:
                 to_station = path[j]
 
                 segments.append(from_station.get_segment_to_station(to_station))
+
+        # Fill in stop transfers
+        for i in range(len(segments)-1, 2, -1):
+            seg1 = segments[i-1]
+            seg2 = segments[i]
+
+            if seg1.get_to_stop() != seg2.get_from_stop():
+                stop_trans = StopTransferSegment(seg1.get_to_stop(), seg2.get_from_stop())
+                segments.insert(i, stop_trans)
 
         starting_stop = segments[0].get_from_stop()
         segments.insert(0, StartingSegment(starting_stop))

@@ -185,7 +185,7 @@ class SubwayStation:
         return self.get_id() == other.get_id()
 
     def __str__(self):
-        return "%s (%s)" % (self.get_name(), self.get_id())
+        return "%s" % self.get_name()
 
     def __hash__(self):
         return hash(self.get_id())

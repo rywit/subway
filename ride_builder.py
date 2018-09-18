@@ -1,21 +1,29 @@
 from Subway import *
+import json
 
 
 def main():
 
     def station_filter(station):
-        return station.get_borough() == "M" or station.get_borough() == "Bx"
+        return station.get_borough() == "Bk"
 
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
-    # to_visit = set([station for station in system.get_stations() if station.get_borough() == "Bx"])
 
     system.calc_segment_distances()
+#    system.calc_km_distances()
 
-    stations = [system.get_station(station_id) for station_id in ["210", "215", "218"]]
+    with open("data/longest_path.json") as f:
+        station_ids = json.load(f)
 
-    ride = SubwayRide.build_ride(stations)
+    stations = [system.get_station(station_id) for station_id in station_ids]
 
+    ride = SubwayRide.build_ride_from_links(stations)
+
+    ride.simplify_ride()
+
+    print("----------------")
+#    print(ride.get_ride_summary())
     print(ride.print())
 
 
