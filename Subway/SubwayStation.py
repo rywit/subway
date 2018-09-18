@@ -143,8 +143,12 @@ class SubwayStation:
 
     def calc_distances_km(self):
         distances, paths = SubwayStation.calc_station_distance_km(self)
-        self.distances_km = distances
+        self.distances_km.update(distances)
         self.paths_km = paths
+        return self
+
+    def set_distance_km(self, to_station, dist_km):
+        self.distances_km[to_station] = dist_km
         return self
 
     def get_distance_km(self, to_station):

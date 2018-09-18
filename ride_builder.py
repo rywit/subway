@@ -11,7 +11,7 @@ def main():
     system = SubwayLinkSystem("data", station_filter)
 
     system.calc_segment_distances()
-#    system.calc_km_distances()
+    system.calc_km_distances()
 
     with open("data/longest_path.json") as f:
         station_ids = json.load(f)
@@ -20,10 +20,10 @@ def main():
 
     ride = SubwayRide.build_ride_from_links(stations)
 
-    ride.simplify_ride()
+#    ride.simplify_ride()
 
     print("----------------")
-#    print(ride.get_ride_summary())
+    print(ride.get_ride_summary())
     print(ride.print())
 
 

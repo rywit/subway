@@ -3,6 +3,7 @@ from Subway.Segments import *
 import pandas as pd
 import math
 
+
 class SubwaySystem:
 
     def __init__(self, station_filter):
@@ -211,19 +212,23 @@ class SubwaySystem:
         print("Loading stop distance data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
+        # Convert station IDs to strings (instead of int)
+        data["from_station_id"] = data["from_station_id"].apply(str)
+        data["to_station_id"] = data["to_station_id"].apply(str)
+
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
-            from_stop_id = row["from_stop_id"]
-            to_stop_id = row["to_stop_id"]
+            from_station_id = row["from_station_id"]
+            to_station_id = row["to_station_id"]
 
             # Skip this stop if it's not in our included set
-            if not self.is_valid_stop(from_stop_id) or not self.is_valid_stop(to_stop_id):
+            if not self.is_valid_station(from_station_id) or not self.is_valid_station(to_station_id):
                 continue
 
-            from_stop = self.get_stop(from_stop_id)
-            to_stop = self.get_stop(to_stop_id)
+            from_station = self.get_station(from_station_id)
+            to_station = self.get_station(to_station_id)
 
-            from_stop.set_distance_km(to_stop, row["dist_km"])
+            from_station.set_distance_km(to_station, row["dist_km"])
 
     def load_ridership(self, path, file_name):
 

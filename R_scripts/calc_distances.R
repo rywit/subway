@@ -1,3 +1,4 @@
+library( tidyr )
 library( dplyr )
 
 radians <- function( deg ) {
@@ -28,6 +29,11 @@ trips <- read.csv( "data/trips.txt", stringsAsFactors = F )
 shapes <- read.csv( "data/shapes.txt", stringsAsFactors = F )
 stops <- read.csv( "data/stops.txt", stringsAsFactors = F )
 stop.times <- read.csv( "data/stop_times.txt", stringsAsFactors = F )
+stations <- read.csv( "data/stations.txt", stringsAsFactors = F )
+
+# Add station_id to our stop data
+stops <- stops %>%
+  left_join( select( stations, station_id, gtfs_stop_id, complex_id ), by = c( "parent_station" = "gtfs_stop_id" ) )
 
 # Insert correct coordinates for Aqueduct Racetrack
 stops[ stops$parent_station == "H01", "stop_lat" ] <- 40.672086
@@ -78,10 +84,7 @@ stop.dist <- trips %>%
 
 # Calculate the distance between consecutive stops
 shape.dist <- stop.dist %>%
-  rename( "first_stop_sequence" = "stop_sequence" ) %>%
-  inner_join( stop.dist, by = c( "route_id", "shape_id" ) ) %>%
-  rename( "second_stop_sequence" = "stop_sequence" ) %>%
-  filter( second_stop_sequence > first_stop_sequence ) %>%
+  inner_join( stop.dist, by = c( "route_id", "shape_id", "next_stop_sequence" = "stop_sequence" ) ) %>%
   rename( "from_stop_id" = "stop_id.x", "to_stop_id" = "stop_id.y" ) %>%
   mutate( dist = cum_dist.y - cum_dist.x ) %>%
   select( route_id, shape_id, from_stop_id, to_stop_id, dist )
@@ -93,21 +96,43 @@ shortest.rides <- shape.dist %>%
   as.data.frame()
 
 # Calculate "as the crow flies" distances between all pairs of stops
-straight.dist <- stops %>%
-  filter( location_type == "0" ) %>%
-  filter( grepl( "^(S|D26|90|H01S|A61S)", stop_id ) ) %>%
-  select( stop_id, stop_lat, stop_lon, location_type ) %>%
-  rename( "from_stop_id" = "stop_id", "lat1" = "stop_lat", "lon1" = "stop_lon" ) %>%
-  inner_join( stops, by = "location_type" ) %>%
-  filter( grepl( "^(S|D26|90|H01S|H02S)", stop_id ) ) %>%
-  rename( "to_stop_id" = "stop_id", "lat2" = "stop_lat", "lon2" = "stop_lon" ) %>%
-  select( from_stop_id, to_stop_id, lat1, lon1, lat2, lon2 ) %>%
+trouble.stops <- stops %>%
+  filter( station_id %in% c( "42", "139", "141", "142", "468", "469", "196", "197", "192" ) ) %>%
+  select( station_id, stop_lat, stop_lon ) %>%
+  distinct
+
+straight.dist <- trouble.stops %>%
+  rename( "from_station_id" = "station_id", "lat1" = "stop_lat", "lon1" = "stop_lon" ) %>%
+  crossing( trouble.stops ) %>%
+  rename( "to_station_id" = "station_id", "lat2" = "stop_lat", "lon2" = "stop_lon" ) %>%
   mutate( dist_km = calc.distance(lat1, lon1, lat2, lon2 ) ) %>%
-  select( from_stop_id, to_stop_id, dist_km ) %>%
+  select( from_station_id, to_station_id, dist_km ) %>%
   as.data.frame()
 
+# Convert stop distances back to station distances
+by.station <- shortest.rides %>%
+  inner_join( stops, by = c( "from_stop_id" = "stop_id" ) ) %>%
+  rename( "from_station_id" = "station_id" ) %>%
+  select( from_station_id, to_stop_id, dist_km ) %>%
+  inner_join( stops, by = c( "to_stop_id" = "stop_id" ) ) %>%
+  rename( "to_station_id" = "station_id" ) %>%
+  select( from_station_id, to_station_id, dist_km ) %>%
+  group_by( from_station_id, to_station_id ) %>%
+  summarise( dist_km = min( dist_km ) ) %>%
+  ungroup()
+
+# Set distances within complexes to be zero
+same.complex <- stops %>%
+  inner_join( stops, by = "complex_id" ) %>%
+  filter( !is.na( complex_id ) ) %>%
+  filter( station_id.x != station_id.y ) %>%
+  select( station_id.x, station_id.y ) %>%
+  rename( "from_station_id" ="station_id.x", "to_station_id" ="station_id.y" ) %>%
+  mutate( dist_km = 0.0 )
+
 # Merge "true" distances with "as the crow flies" distances
-shortest.routes <- rbind( shortest.rides, straight.dist )
+shortest.routes <- rbind( by.station, straight.dist, same.complex )
 
 # Write to disk
-write.csv( shortest.routes, "data/distances.txt", quote = F, na = "", row.names = F )
+write.csv( by.station, "data/distances.txt", quote = F, na = "", row.names = F )
+

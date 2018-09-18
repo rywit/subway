@@ -67,9 +67,6 @@ class TransferSegment(Segment):
     def get_distance_km(self):
         return 0
 
-    def __str__(self):
-        return "Transfer: %s to %s" % (self.get_from_stop(), self.get_to_stop())
-
     def __hash__(self):
         return hash(self.get_id())
 
@@ -89,7 +86,16 @@ class StationTransferSegment(TransferSegment):
         return True
 
     def __str__(self):
-        return "Station Transfer: %s to %s" % (self.get_from_station(), self.get_to_station())
+        from_station_name = self.get_from_station().get_name()
+        to_station_name = self.get_to_station().get_name()
+
+        from_stop_id = self.get_from_stop().get_id()
+        to_stop_id = self.get_to_stop().get_id()
+
+        if from_station_name == to_station_name:
+            return "Station Transfer: %s (%s to %s)" % (from_station_name, from_stop_id, to_stop_id)
+        else:
+            return "Station Transfer: %s (%s) to %s (%s)" % (from_station_name, from_stop_id, to_station_name, to_stop_id)
 
 
 class StopTransferSegment(TransferSegment):
@@ -101,7 +107,10 @@ class StopTransferSegment(TransferSegment):
         return False
 
     def __str__(self):
-        return "Stop Transfer: %s to %s" % (self.get_from_stop(), self.get_to_stop())
+        station = self.get_from_station()
+        from_stop = self.get_from_stop()
+        to_stop = self.get_to_stop()
+        return "Stop Transfer: %s (%s to %s)" % (station.get_name(), from_stop.get_id(), to_stop.get_id())
 
 
 class EndingSegment(Segment):

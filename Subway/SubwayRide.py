@@ -122,28 +122,31 @@ class SubwayRide:
     def build_ride_from_links(stations):
         segments = []
 
-        num_stations = len(stations)
-
-        for i in range(1, num_stations):
-            from_station = stations[i-1]
-            to_station = stations[i]
+        for from_station, to_station in zip(stations, stations[1:]):
 
             path = from_station.get_path_segments(to_station)
 
-            for j in range(1, len(path)):
-                from_station = path[j-1]
-                to_station = path[j]
+            for from_station2, to_station2 in zip(path, path[1:]):
+                segments.append(from_station2.get_segment_to_station(to_station2))
 
-                segments.append(from_station.get_segment_to_station(to_station))
+        # Collapse repeat transfers
+        for i in range(len(segments)-1, 2, -1):
+            seg1 = segments[i-1]
+            seg2 = segments[i]
+
+            if isinstance(seg1, StationTransferSegment) and isinstance(seg2, StationTransferSegment):
+                seg1.reset_to_stop(seg2.get_to_stop())
+                del segments[i]
 
         # Fill in stop transfers
         for i in range(len(segments)-1, 2, -1):
             seg1 = segments[i-1]
             seg2 = segments[i]
 
-            if seg1.get_to_stop() != seg2.get_from_stop():
-                stop_trans = StopTransferSegment(seg1.get_to_stop(), seg2.get_from_stop())
-                segments.insert(i, stop_trans)
+            if isinstance(seg1, RideSegment) and isinstance(seg2, RideSegment):
+                if seg1.get_to_stop() != seg2.get_from_stop():
+                    stop_trans = StopTransferSegment(seg1.get_to_stop(), seg2.get_from_stop())
+                    segments.insert(i, stop_trans)
 
         starting_stop = segments[0].get_from_stop()
         segments.insert(0, StartingSegment(starting_stop))
