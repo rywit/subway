@@ -126,13 +126,15 @@ same.complex <- stops %>%
   inner_join( stops, by = "complex_id" ) %>%
   filter( !is.na( complex_id ) ) %>%
   filter( station_id.x != station_id.y ) %>%
-  select( station_id.x, station_id.y ) %>%
+  select( station_id.x, station_id.y, stop_lat.x, stop_lon.x, stop_lat.y, stop_lon.y ) %>%
   rename( "from_station_id" ="station_id.x", "to_station_id" ="station_id.y" ) %>%
-  mutate( dist_km = 0.0 )
+  rename( "lat1" = "stop_lat.x", "lon1" = "stop_lon.x", "lat2" = "stop_lat.y", "lon2" = "stop_lon.y" ) %>%
+  mutate( dist_km = calc.distance(lat1, lon1, lat2, lon2 ) ) %>%
+  select( from_station_id, to_station_id, dist_km ) %>%
+  distinct()
 
 # Merge "true" distances with "as the crow flies" distances
 shortest.routes <- rbind( by.station, straight.dist, same.complex )
 
 # Write to disk
-write.csv( by.station, "data/distances.txt", quote = F, na = "", row.names = F )
-
+write.csv( shortest.routes, "data/distances.txt", quote = F, na = "", row.names = F )

@@ -206,7 +206,7 @@ class SubwayStation:
         if depths is None:
             depths = {}
             paths = {}
-            cur_path = []
+            cur_path = [station]
 
         should_recurse = False
 
@@ -226,12 +226,12 @@ class SubwayStation:
         if should_recurse:
             for neighbor in station.get_connecting_ride_stations():
                 new_path = cur_path.copy()
-                new_path.append(station)
+                new_path.append(neighbor)
                 SubwayStation.calc_station_distance_rides(neighbor, depth + 1, depths, paths, new_path)
 
             for neighbor in station.get_connecting_transfer_stations():
                 new_path = cur_path.copy()
-                new_path.append(station)
+                new_path.append(neighbor)
                 SubwayStation.calc_station_distance_rides(neighbor, depth, depths, paths, new_path)
 
         return depths, paths
@@ -242,7 +242,7 @@ class SubwayStation:
         if depths is None:
             depths = {}
             paths = {}
-            cur_path = []
+            cur_path = [station]
 
         should_recurse = False
 
@@ -262,12 +262,12 @@ class SubwayStation:
         if should_recurse:
             for neighbor in station.get_connecting_ride_stations():
                 new_path = cur_path.copy()
-                new_path.append(station)
+                new_path.append(neighbor)
                 SubwayStation.calc_station_distance_transfers(neighbor, depth, depths, paths, new_path)
 
             for neighbor in station.get_connecting_transfer_stations():
                 new_path = cur_path.copy()
-                new_path.append(station)
+                new_path.append(neighbor)
                 SubwayStation.calc_station_distance_transfers(neighbor, depth + 1, depths, paths, new_path)
 
         return depths, paths
@@ -284,18 +284,17 @@ class SubwayStation:
 
         if station not in depths:
             should_recurse = True
+            depths[station] = depth
+            paths[station] = cur_path
         elif depth < depths[station]:
             should_recurse = True
+            depths[station] = depth
+            paths[station] = cur_path
 
         if should_recurse:
-
-            new_path = cur_path.copy()
-            new_path.append(station)
-
-            depths[station] = depth
-            paths[station] = new_path
-
             for neighbor in station.get_connecting_stations():
+                new_path = cur_path.copy()
+                new_path.append(neighbor)
                 SubwayStation.calc_station_distance_segments(neighbor, depth + 1, depths, paths, new_path)
 
         return depths, paths
@@ -306,7 +305,7 @@ class SubwayStation:
         if distances is None:
             distances = {}
             paths = {}
-            cur_path = []
+            cur_path = [station]
 
         should_recurse = False
 
@@ -322,7 +321,7 @@ class SubwayStation:
         if should_recurse:
             for neighbor in station.get_connecting_stations():
                 new_path = cur_path.copy()
-                new_path.append(station)
+                new_path.append(neighbor)
                 new_dist = station.get_distance_km(neighbor)
                 SubwayStation.calc_station_distance_km(neighbor, distance + new_dist, distances, paths, new_path)
 

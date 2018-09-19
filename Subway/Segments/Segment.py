@@ -20,6 +20,9 @@ class Segment:
         self.to_stop = to_stop
         return self
 
+    def get_distance_km(self):
+        return self.get_from_station().get_distance_km(self.get_to_station())
+
 
 class StartingSegment(Segment):
 
@@ -45,9 +48,6 @@ class RideSegment(Segment):
     def get_id(self):
         return "%s/%s" % (self.get_from_stop().get_id(), self.get_to_stop().get_id())
 
-    def get_distance_km(self):
-        return self.get_from_stop().get_distance_km(self.get_to_stop())
-
     def get_num_stops(self):
         return self.num_stops
 
@@ -63,9 +63,6 @@ class TransferSegment(Segment):
 
     def get_id(self):
         return "%s/%s" % (self.get_from_stop().get_id(), self.get_to_stop().get_id())
-
-    def get_distance_km(self):
-        return 0
 
     def __hash__(self):
         return hash(self.get_id())
@@ -120,12 +117,3 @@ class EndingSegment(Segment):
 
     def __str__(self):
         return "End: %s" % self.get_to_station()
-
-
-class ErrorSegment(Segment):
-
-    def __init__(self, stop):
-        super().__init__(stop, stop)
-
-    def __str__(self):
-        return "ERROR: %s" % self.get_to_station()

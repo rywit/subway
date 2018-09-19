@@ -10,6 +10,7 @@ def main():
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
 
+    system.calc_transfer_distances()
     system.calc_segment_distances()
     system.calc_km_distances()
 
@@ -18,7 +19,7 @@ def main():
 
     stations = [system.get_station(station_id) for station_id in station_ids]
 
-    ride = SubwayRide.build_ride_from_links(stations)
+    ride = SubwayRide.build_ride_from_links(stations, RideType.Transfer)
 
 #    ride.simplify_ride()
 

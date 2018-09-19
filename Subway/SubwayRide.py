@@ -1,4 +1,12 @@
 from Subway.Segments.Segment import *
+from enum import Enum
+
+
+class RideType(Enum):
+    Segment = 1,
+    Ride = 2,
+    Transfer = 3,
+    DistanceKm = 4
 
 
 class SubwayRide:
@@ -46,6 +54,12 @@ class SubwayRide:
     def get_transfer_segments(self):
         return [seg for seg in self.get_segments() if isinstance(seg, TransferSegment)]
 
+    def get_station_transfer_segments(self):
+        return [seg for seg in self.get_segments() if isinstance(seg, StationTransferSegment)]
+
+    def get_stop_transfer_segments(self):
+        return [seg for seg in self.get_segments() if isinstance(seg, StopTransferSegment)]
+
     def add_segment(self, segment):
         self.segments.append(segment)
         self.stations.add(segment.get_from_station())
@@ -85,19 +99,24 @@ class SubwayRide:
     def get_num_transfers(self):
         return len(self.get_transfer_segments())
 
-    def get_num_stations(self):
-        return len(self.get_visited_stations())
+    def get_num_station_transfers(self):
+        return len(self.get_station_transfer_segments())
+
+    def get_num_stop_transfers(self):
+        return len(self.get_stop_transfer_segments())
 
     def get_ride_distance_km(self):
-        return sum([seg.get_distance_km() for seg in self.get_ride_segments()])
+        dists = [seg.get_distance_km() for seg in self.get_ride_segments()]
+        return sum(dists)
 
     def get_ride_summary(self):
         return "\n".join([
             "Start: %s" % self.get_first_segment().get_from_station(),
             "End: %s" % self.get_last_segment().get_to_station(),
             "Rides: %d" % self.get_num_rides(),
-            "Transfers: %d" % self.get_num_transfers(),
-            "Stations: %d" % self.get_num_stations(),
+            "Station Transfers: %d" % self.get_num_station_transfers(),
+            "Stop Transfers: %d" % self.get_num_stop_transfers(),
+            "Stations Visited: %d" % self.get_num_visited_stations(),
             "Distance: %.2f km" % self.get_ride_distance_km()])
 
     def simplify_ride(self):
@@ -119,24 +138,27 @@ class SubwayRide:
         return "\n".join(map(str, self.get_segments()))
 
     @staticmethod
-    def build_ride_from_links(stations):
+    def __get_path(from_station, to_station, method):
+        if method == RideType.Segment:
+            return from_station.get_path_segments(to_station)
+        if method == RideType.Ride:
+            return from_station.get_path_rides(to_station)
+        if method == RideType.Transfer:
+            return from_station.get_path_transfers(to_station)
+        if method == RideType.DistanceKm:
+            return from_station.get_path_distance(to_station)
+
+    @staticmethod
+    def build_ride_from_links(stations, method=RideType.Segment):
         segments = []
 
+        # Build basic ride segments
         for from_station, to_station in zip(stations, stations[1:]):
 
-            path = from_station.get_path_segments(to_station)
+            path = SubwayRide.__get_path(from_station, to_station, method)
 
             for from_station2, to_station2 in zip(path, path[1:]):
                 segments.append(from_station2.get_segment_to_station(to_station2))
-
-        # Collapse repeat transfers
-        for i in range(len(segments)-1, 2, -1):
-            seg1 = segments[i-1]
-            seg2 = segments[i]
-
-            if isinstance(seg1, StationTransferSegment) and isinstance(seg2, StationTransferSegment):
-                seg1.reset_to_stop(seg2.get_to_stop())
-                del segments[i]
 
         # Fill in stop transfers
         for i in range(len(segments)-1, 2, -1):
