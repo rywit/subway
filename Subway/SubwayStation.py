@@ -210,25 +210,27 @@ class SubwayStation:
 
         should_recurse = False
 
+        # Is this the optimal path (so far) to this station?
         if station not in depths:
-            depths[station] = depth
-            paths[station] = cur_path
             should_recurse = True
         elif depth < depths[station]:
-            depths[station] = depth
-            paths[station] = cur_path
             should_recurse = True
         elif depth == depths[station] and len(cur_path) < len(paths[station]):
-            depths[station] = depth
-            paths[station] = cur_path
             should_recurse = True
 
         if should_recurse:
+
+            # Update depth and path to this station
+            depths[station] = depth
+            paths[station] = cur_path
+
+            # Iterate to ride stations and increment depth
             for neighbor in station.get_connecting_ride_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
                 SubwayStation.calc_station_distance_rides(neighbor, depth + 1, depths, paths, new_path)
 
+            # Iterate to transfer stations but don't increment depth
             for neighbor in station.get_connecting_transfer_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
@@ -246,25 +248,27 @@ class SubwayStation:
 
         should_recurse = False
 
+        # Is this the optimal path (so far) to this station?
         if station not in depths:
-            depths[station] = depth
-            paths[station] = cur_path
             should_recurse = True
         elif depth < depths[station]:
-            depths[station] = depth
-            paths[station] = cur_path
             should_recurse = True
         elif depth == depths[station] and len(cur_path) < len(paths[station]):
-            depths[station] = depth
-            paths[station] = cur_path
             should_recurse = True
 
         if should_recurse:
+
+            # Update depth and path to this station
+            depths[station] = depth
+            paths[station] = cur_path
+
+            # Iterate to ride stations but don't increment depth
             for neighbor in station.get_connecting_ride_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
                 SubwayStation.calc_station_distance_transfers(neighbor, depth, depths, paths, new_path)
 
+            # Iterate to transfer stations and increment depth
             for neighbor in station.get_connecting_transfer_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
@@ -278,20 +282,23 @@ class SubwayStation:
         if depths is None:
             depths = {}
             paths = {}
-            cur_path = []
+            cur_path = [station]
 
         should_recurse = False
 
+        # Is this the optimal path (so far) to this station?
         if station not in depths:
             should_recurse = True
-            depths[station] = depth
-            paths[station] = cur_path
         elif depth < depths[station]:
             should_recurse = True
+
+        if should_recurse:
+
+            # Update depth and path to this station
             depths[station] = depth
             paths[station] = cur_path
 
-        if should_recurse:
+            # Iterate to connecting stations and increment depth
             for neighbor in station.get_connecting_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
@@ -309,16 +316,19 @@ class SubwayStation:
 
         should_recurse = False
 
+        # Is this the optimal path (so far) to this station?
         if station not in distances:
-            distances[station] = distance
-            paths[station] = cur_path
             should_recurse = True
         elif distance < distances[station]:
-            distances[station] = distance
-            paths[station] = cur_path
             should_recurse = True
 
         if should_recurse:
+
+            # Update depth and path to this station
+            distances[station] = distance
+            paths[station] = cur_path
+
+            # Iterate to connecting stations and increment distance
             for neighbor in station.get_connecting_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
