@@ -1,8 +1,13 @@
+from Subway.Utils import DistanceType
+
+
 class Segment:
 
-    def __init__(self, from_stop, to_stop):
+    def __init__(self, from_stop, to_stop, num_stops=1):
         self.from_stop = from_stop
         self.to_stop = to_stop
+        self.num_stops = num_stops
+        self.dist_km = from_stop.get_station().get_distance(DistanceType.KM, to_stop.get_station())
 
     def get_from_stop(self):
         return self.from_stop
@@ -16,12 +21,17 @@ class Segment:
     def get_to_station(self):
         return self.get_to_stop().get_station()
 
-    def reset_to_stop(self, to_stop):
-        self.to_stop = to_stop
-        return self
+    def get_num_stops(self):
+        return self.num_stops
 
     def get_distance_km(self):
-        return self.get_from_station().get_distance_km(self.get_to_station())
+        return self.dist_km
+
+    def merge(self, other):
+        self.to_stop = other.get_to_stop()
+        self.num_stops += other.get_num_stops()
+        self.dist_km += other.get_distance_km()
+        return self
 
 
 class StartingSegment(Segment):
@@ -36,8 +46,7 @@ class StartingSegment(Segment):
 class RideSegment(Segment):
 
     def __init__(self, from_stop, to_stop, num_stops=1):
-        super().__init__(from_stop, to_stop)
-        self.num_stops = num_stops
+        super().__init__(from_stop, to_stop, num_stops)
 
     def __hash__(self):
         return hash(self.get_id())
@@ -48,18 +57,11 @@ class RideSegment(Segment):
     def get_id(self):
         return "%s/%s" % (self.get_from_stop().get_id(), self.get_to_stop().get_id())
 
-    def get_num_stops(self):
-        return self.num_stops
-
-    def reset_num_stops(self, other_num_stops):
-        self.num_stops += other_num_stops
-        return self
-
 
 class TransferSegment(Segment):
 
-    def __init__(self, from_stop, to_stop):
-        super().__init__(from_stop, to_stop)
+    def __init__(self, from_stop, to_stop, num_stops=1):
+        super().__init__(from_stop, to_stop, num_stops)
 
     def get_id(self):
         return "%s/%s" % (self.get_from_stop().get_id(), self.get_to_stop().get_id())
@@ -70,14 +72,11 @@ class TransferSegment(Segment):
     def __eq__(self, other):
         return isinstance(other, TransferSegment) and self.get_id() == other.get_id()
 
-    def merge(self, other):
-        return self.reset_to_stop(other.get_to_stop())
-
 
 class StationTransferSegment(TransferSegment):
 
-    def __init__(self, from_stop, to_stop):
-        super().__init__(from_stop, to_stop)
+    def __init__(self, from_stop, to_stop, num_stops=1):
+        super().__init__(from_stop, to_stop, num_stops)
 
     def is_station_transfer(self):
         return True
@@ -97,8 +96,8 @@ class StationTransferSegment(TransferSegment):
 
 class StopTransferSegment(TransferSegment):
 
-    def __init__(self, from_stop, to_stop):
-        super().__init__(from_stop, to_stop)
+    def __init__(self, from_stop, to_stop, num_stops=1):
+        super().__init__(from_stop, to_stop, num_stops)
 
     def is_station_transfer(self):
         return False

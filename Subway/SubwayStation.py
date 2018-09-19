@@ -1,3 +1,6 @@
+from Subway.Utils import DistanceType
+
+
 class SubwayStation:
 
     def __init__(self, station_id, name, lat, lon, borough, structure, line, division):
@@ -11,14 +14,8 @@ class SubwayStation:
         self.division = division
         self.station_complex = None
         self.stops = set()
-        self.distances_rides = {}
-        self.paths_rides = {}
-        self.distances_transfers = {}
-        self.paths_transfers = {}
-        self.distances_segments = {}
-        self.paths_segments = {}
-        self.distances_km = {}
-        self.paths_km = {}
+        self.distances = {}
+        self.paths = {}
 
     def get_id(self):
         return self.station_id
@@ -81,87 +78,52 @@ class SubwayStation:
                 if seg is not None:
                     return seg
 
+    def set_distance(self, to_station, method, distance):
+        self.distances.setdefault(method, {})
+        self.distances[method][to_station] = distance
+
     @staticmethod
     def get_shortest_path(paths, stations):
         segs = [paths[station] for station in stations]
         lens = [len(x) for x in segs]
         return segs[lens.index(min(lens))]
 
-    def calc_distances_rides(self):
-        depths, paths = SubwayStation.calc_station_distance_rides(self)
-        self.distances_rides = depths
-        self.paths_rides = paths
+    def calc_distances(self, method):
+
+        # Set defaults for this method, if necessary
+        self.distances.setdefault(method, {})
+        self.paths.setdefault(method, {})
+
+        if method == DistanceType.Rides:
+            depths, paths = SubwayStation.calc_station_distance_rides(self)
+            self.distances[method].update(depths)
+            self.paths[method].update(paths)
+        elif method == DistanceType.Transfers:
+            depths, paths = SubwayStation.calc_station_distance_transfers(self)
+            self.distances[method].update(depths)
+            self.paths[method].update(paths)
+        elif method == DistanceType.Segments:
+            depths, paths = SubwayStation.calc_station_distance_segments(self)
+            self.distances[method].update(depths)
+            self.paths[method].update(paths)
+        elif method == DistanceType.KM:
+            distances, paths = SubwayStation.calc_station_distance_km(self)
+            self.distances[method].update(distances)
+            self.paths[method].update(paths)
+
         return self
 
-    def get_distance_rides(self, to_station):
+    def get_distance(self, method, to_station):
         if isinstance(to_station, SubwayStation):
-            return self.distances_rides[to_station]
+            return self.distances[method][to_station]
         else:
-            return min([self.distances_rides[station] for station in to_station])
+            return min([self.distances[method][station] for station in to_station])
 
-    def get_path_rides(self, to_station):
+    def get_path(self, method, to_station):
         if isinstance(to_station, SubwayStation):
-            return self.paths_rides[to_station]
+            return self.paths[method][to_station]
         else:
-            return self.get_shortest_path(self.paths_rides, to_station)
-
-    def calc_distances_transfers(self):
-        depths, paths = SubwayStation.calc_station_distance_transfers(self)
-        self.distances_transfers = depths
-        self.paths_transfers = paths
-        return self
-
-    def get_distance_transfers(self, to_station):
-        if isinstance(to_station, SubwayStation):
-            return self.distances_transfers[to_station]
-        else:
-            return min([self.distances_transfers[station] for station in to_station])
-
-    def get_path_transfers(self, to_station):
-        if isinstance(to_station, SubwayStation):
-            return self.paths_transfers[to_station]
-        else:
-            return self.get_shortest_path(self.paths_transfers, to_station)
-
-    def calc_distances_segments(self):
-        depths, paths = SubwayStation.calc_station_distance_segments(self)
-        self.distances_segments = depths
-        self.paths_segments = paths
-        return self
-
-    def get_distance_segments(self, to_station):
-        if isinstance(to_station, SubwayStation):
-            return self.distances_segments[to_station]
-        else:
-            return min([self.distances_segments[station] for station in to_station])
-
-    def get_path_segments(self, to_station):
-        if isinstance(to_station, SubwayStation):
-            return self.paths_segments[to_station]
-        else:
-            return self.get_shortest_path(self.paths_transfers, to_station)
-
-    def calc_distances_km(self):
-        distances, paths = SubwayStation.calc_station_distance_km(self)
-        self.distances_km.update(distances)
-        self.paths_km = paths
-        return self
-
-    def set_distance_km(self, to_station, dist_km):
-        self.distances_km[to_station] = dist_km
-        return self
-
-    def get_distance_km(self, to_station):
-        if isinstance(to_station, SubwayStation):
-            return self.distances_km[to_station]
-        else:
-            return min([self.distances_km[station] for station in to_station])
-
-    def get_path_km(self, to_station):
-        if isinstance(to_station, SubwayStation):
-            return self.paths_km[to_station]
-        else:
-            return self.get_shortest_path(self.paths_km, to_station)
+            return self.get_shortest_path(self.paths[method], to_station)
 
     def is_terminal(self):
 
@@ -332,7 +294,7 @@ class SubwayStation:
             for neighbor in station.get_connecting_stations():
                 new_path = cur_path.copy()
                 new_path.append(neighbor)
-                new_dist = station.get_distance_km(neighbor)
+                new_dist = station.get_distance(DistanceType.KM, neighbor)
                 SubwayStation.calc_station_distance_km(neighbor, distance + new_dist, distances, paths, new_path)
 
         return distances, paths

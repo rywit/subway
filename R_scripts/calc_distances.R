@@ -121,7 +121,7 @@ by.station <- shortest.rides %>%
   summarise( dist_km = min( dist_km ) ) %>%
   ungroup()
 
-# Set distances within complexes to be zero
+# Set distances within complexes to be straight-line distance
 same.complex <- stops %>%
   inner_join( stops, by = "complex_id" ) %>%
   filter( !is.na( complex_id ) ) %>%
@@ -133,8 +133,15 @@ same.complex <- stops %>%
   select( from_station_id, to_station_id, dist_km ) %>%
   distinct()
 
+same.station <- stops %>%
+  filter( !is.na( station_id ) ) %>%
+  select( station_id ) %>%
+  distinct() %>%
+  mutate( from_station_id = station_id, to_station_id = station_id, dist_km = 0.0 ) %>%
+  select( -station_id )
+
 # Merge "true" distances with "as the crow flies" distances
-shortest.routes <- rbind( by.station, straight.dist, same.complex )
+shortest.routes <- rbind( by.station, straight.dist, same.complex, same.station )
 
 # Write to disk
 write.csv( shortest.routes, "data/distances.txt", quote = F, na = "", row.names = F )

@@ -10,4 +10,4 @@ from Subway.RouteChoosers.LinkChooser import *
 from Subway.RouteChoosers.TripChooser import *
 from Subway.StationComplex import StationComplex
 from Subway.SubwaySystem import *
-from Subway.SubwayRide import RideType
+from Subway.Utils import DistanceType

@@ -15,15 +15,12 @@ class RideLinkSegment(RideSegment):
         from_stop_id = self.get_from_stop().get_id()
         to_stop_id = self.get_to_stop().get_id()
 
-        if num_stops == 1:
-            return "Ride 1 stop: %s (%s) to %s (%s)" % (from_station_name, from_stop_id, to_station_name, to_stop_id)
-        else:
-            return "Ride %d stops: %s (%s) to %s (%s)" % (num_stops, from_station_name, from_stop_id, to_station_name, to_stop_id)
+        base_str = "%s (%s) to %s (%s)" % (from_station_name, from_stop_id, to_station_name, to_stop_id)
 
-    def merge(self, other):
-        self.reset_to_stop(other.get_to_stop())
-        self.reset_num_stops(other.get_num_stops())
-        return self
+        if num_stops == 1:
+            return "Ride: %s" % base_str
+        else:
+            return "Ride %d stops: %s" % (num_stops, base_str)
 
 
 class TransferLinkSegment(TransferSegment):
@@ -33,6 +30,3 @@ class TransferLinkSegment(TransferSegment):
 
     def __str__(self):
         return "Transfer: %s to %s" % (self.get_from_stop(), self.get_to_stop())
-
-    def merge(self, other):
-        return self.reset_to_stop(other.get_to_stop())

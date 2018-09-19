@@ -10,8 +10,7 @@ def main():
 
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
-    system.calc_transfer_distances()
-    system.calc_segment_distances()
+    system.calc_distances(DistanceType.Segments)
 
     stations = sorted(filter(lambda x: x.get_borough() == "Bk", system.get_stations()))
 
@@ -20,9 +19,8 @@ def main():
     for station1 in stations:
         row = []
         for station2 in stations:
-            trans_dist = station1.get_distance_transfers(station2)
-            seg_dist = station1.get_distance_segments(station2)
-            row.append(1000 * trans_dist + seg_dist)
+            seg_dist = station1.get_distance(DistanceType.Segments, station2)
+            row.append(seg_dist)
 
         rows.append(row)
 

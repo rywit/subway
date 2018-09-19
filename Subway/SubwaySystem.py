@@ -1,5 +1,6 @@
 from Subway import *
 from Subway.Segments import *
+from Subway.Utils import DistanceType
 import pandas as pd
 import math
 
@@ -108,22 +109,21 @@ class SubwaySystem:
 
             parent_stop_id = row["parent_station"]
 
-            if not pd.isna(parent_stop_id):
+            # Skip this record if there is no parent stop ID
+            if pd.isna(parent_stop_id):
+                continue
 
+            try:
                 station_id = stop_map[parent_stop_id]
-
-                # Skip this stop if its parent station isn't in our included set
-                if not self.is_valid_station(station_id):
-                    continue
-
-                # Find the parent station for this stop
                 parent_station = self.get_station(station_id)
+            except KeyError:
+                continue
 
-                stop_id = row["stop_id"]
-                stop = SubwayStop(stop_id, parent_station)
+            stop_id = row["stop_id"]
+            stop = SubwayStop(stop_id, parent_station)
 
-                stops[stop_id] = stop
-                parent_station.add_stop(stop)
+            stops[stop_id] = stop
+            parent_station.add_stop(stop)
 
         self.stops = stops
 
@@ -172,15 +172,11 @@ class SubwaySystem:
             from_stop_id = row["from_stop_id"]
             to_stop_id = row["to_stop_id"]
 
-            from_station_id = stop_map[from_stop_id]
-            to_station_id = stop_map[to_stop_id]
-
-            # Skip this transfer if it involves a station not in our included set
-            if not self.is_valid_station(from_station_id) or not self.is_valid_station(to_station_id):
+            try:
+                from_station = self.get_station(stop_map[from_stop_id])
+                to_station = self.get_station(stop_map[to_stop_id])
+            except KeyError:
                 continue
-
-            from_station = self.get_station(from_station_id)
-            to_station = self.get_station(to_station_id)
 
             for from_stop in from_station.get_stops():
                 for to_stop in to_station.get_stops():
@@ -218,17 +214,14 @@ class SubwaySystem:
 
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
-            from_station_id = row["from_station_id"]
-            to_station_id = row["to_station_id"]
 
-            # Skip this stop if it's not in our included set
-            if not self.is_valid_station(from_station_id) or not self.is_valid_station(to_station_id):
+            try:
+                from_station = self.get_station(row["from_station_id"])
+                to_station = self.get_station(row["to_station_id"])
+            except KeyError:
                 continue
 
-            from_station = self.get_station(from_station_id)
-            to_station = self.get_station(to_station_id)
-
-            from_station.set_distance_km(to_station, row["dist_km"])
+            from_station.set_distance(to_station, DistanceType.KM, row["dist_km"])
 
     def load_ridership(self, path, file_name):
 
@@ -244,48 +237,26 @@ class SubwaySystem:
 
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
-            complex_id = row["complex_id"]
-            ridership_2017 = row["ridership_2017"]
 
-            # Skip this stop if it's not in our included set
-            if not self.is_valid_complex(complex_id):
+            try:
+                station_complex = self.get_complex(row["complex_id"])
+            except KeyError:
                 continue
+
+            ridership_2017 = row["ridership_2017"]
 
             # Treat missing ridership data as zero (e.g. new stations and Cortlandt St)
             if math.isnan(ridership_2017):
                 ridership_2017 = 0.0
 
-            station_complex = self.get_complex(complex_id)
-
             station_complex.set_ridership(ridership_2017)
 
-    def calc_transfer_distances(self):
+    def calc_distances(self, method):
 
-        print("Calculating station transfer distances")
+        print("Calculating station distances")
 
-        for station in self.get_stations():
-            station.calc_distances_transfers()
-
-    def calc_ride_distances(self):
-
-        print("Calculating station ride distances")
-
-        for station in self.get_stations():
-            station.calc_distances_rides()
-
-    def calc_segment_distances(self):
-
-        print("Calculating station segment distances")
-
-        for station in self.get_stations():
-            station.calc_distances_segments()
-
-    def calc_km_distances(self):
-
-        print("Calculating station km distances")
-
-        for station in self.get_stations():
-            station.calc_distances_km()
+        for station in sorted(self.get_stations()):
+            station.calc_distances(method)
 
     def load_basic_data(self, path):
 
@@ -298,11 +269,11 @@ class SubwaySystem:
         # Load stop data
         self.load_stops(path, "stops.txt", stop_map)
 
-        # Load transfer data
-        self.load_transfers(path, "transfers.txt", stop_map)
-
         # Load distance between each pair of connecting stops
         self.load_distances(path, "distances.txt")
+
+        # Load transfer data
+        self.load_transfers(path, "transfers.txt", stop_map)
 
         # Load ridership data
         self.load_ridership(path, "ridership.txt")
@@ -359,15 +330,11 @@ class SubwayLinkSystem(SubwaySystem):
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
 
-            from_stop_id = row["from_stop_id"]
-            to_stop_id = row["to_stop_id"]
-
-            # Skip this link if one or both of the stops is not in our available set
-            if not self.is_valid_stop(from_stop_id) or not self.is_valid_stop(to_stop_id):
+            try:
+                from_stop = self.get_stop(row["from_stop_id"])
+                to_stop = self.get_stop(row["to_stop_id"])
+            except KeyError:
                 continue
-
-            from_stop = self.get_stop(from_stop_id)
-            to_stop = self.get_stop(to_stop_id)
 
             from_stop.add_ride_segment(RideLinkSegment(from_stop, to_stop))
 
@@ -393,21 +360,15 @@ class SubwayConnectionSystem(SubwaySystem):
         print("Loading connection data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
-        stops = self.get_stops()
-
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
 
-            from_stop_id = row["from_stop_id"]
-            to_stop_id = row["to_stop_id"]
-            route_id = row["route_id"]
-
-            if not self.is_valid_stop(from_stop_id) or not self.is_valid_stop(to_stop_id):
+            try:
+                from_stop = self.get_stop(row["from_stop_id"])
+                to_stop = self.get_stop(row["to_stop_id"])
+                route = self.get_route(row["route_id"])
+            except KeyError:
                 continue
-
-            from_stop = self.get_stop(from_stop_id)
-            to_stop = self.get_stop(to_stop_id)
-            route = self.get_route(route_id)
 
             from_stop.add_ride_segment(RideConnectionSegment(from_stop, to_stop, route))
 
@@ -435,8 +396,7 @@ class SubwayTripSystem(SubwaySystem):
     def get_timetable(self):
         return self.timetable
 
-    @staticmethod
-    def load_trips(path, file_name, routes):
+    def load_trips(self, path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -449,14 +409,19 @@ class SubwayTripSystem(SubwaySystem):
 
         for idx, row in data.iterrows():
             trip_id = row["trip_id"]
-            route = routes[row["route_id"]]
+
+            try:
+                route = self.get_route(row["route_id"])
+            except KeyError:
+                continue
 
             trips[trip_id] = SubwayTrip(route, row["service_id"], trip_id, row["trip_headsign"], row["direction_id"])
 
-        return trips
+        self.trips.update(trips)
 
-    @staticmethod
-    def load_stop_times(path, file_name, trips, stops):
+        return self
+
+    def load_stop_times(self, path, file_name):
 
         # Build full path to file
         full_path = "/".join([path, file_name])
@@ -465,37 +430,29 @@ class SubwayTripSystem(SubwaySystem):
         print("Loading stop time data from '%s'" % full_path)
         data = pd.read_csv(full_path).sort_values(by=["trip_id", "stop_sequence"])
 
-        stop_times = []
-
         for idx, row in data.iterrows():
-            # Pull out the trip_id and stop_id for this stop time
-            trip_id = row["trip_id"]
-            stop_id = row["stop_id"]
 
-            # Skip this stop time if we don't have a valid stop (e.g. SIR)
-            if stop_id not in stops:
+            try:
+                stop = self.get_stop(row["stop_id"])
+                trip = self.get_trip(row["trip_id"])
+            except KeyError:
                 continue
 
             # Build a new StopTime object, with links to the trip and the stop
-            stop_time = SubwayStopTime(trips[trip_id], row["arrival_time"], row["departure_time"],
-                                       stops[stop_id], row["stop_sequence"])
+            stop_time = SubwayStopTime(trip, row["arrival_time"], row["departure_time"],
+                                       stop, row["stop_sequence"])
 
             # Add this stop time to the given trip
-            trips[trip_id].add_stop_time(stop_time)
+            trip.add_stop_time(stop_time)
 
-            # Add this stop time to our return set
-            stop_times.append(stop_time)
-
-        return stop_times
+        return self
 
     def load_trip_data(self, path):
 
         # Load trip dada
-        trips = self.load_trips(path, "trips.txt", self.get_routes())
+        self.load_trips(path, "trips.txt")
 
         # Load stop time data
-        self.load_stop_times(path, "stop_times_weekday.txt", trips, self.get_stops())
+        self.load_stop_times(path, "stop_times_weekday.txt")
 
-        # Save output into instance
-        self.trips = trips
-        self.timetable = TimeTable(trips)
+        return self
