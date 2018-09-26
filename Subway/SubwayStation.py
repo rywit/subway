@@ -3,7 +3,7 @@ from Subway.Utils import DistanceType
 
 class SubwayStation:
 
-    def __init__(self, station_id, name, lat, lon, borough, structure, line, division):
+    def __init__(self, station_id, name, lat, lon, borough, structure, line, division, routes):
         self.station_id = station_id
         self.name = name
         self.lat = lat
@@ -12,6 +12,7 @@ class SubwayStation:
         self.structure = structure
         self.line = line
         self.division = division
+        self.routes = routes
         self.station_complex = None
         self.stops = set()
         self.distances = {}
@@ -40,6 +41,12 @@ class SubwayStation:
 
     def get_division(self):
         return self.division
+
+    def add_routes(self, routes):
+        self.routes.update(routes)
+
+    def get_routes(self):
+        return self.routes
 
     def add_stop(self, stop):
         self.stops.add(stop)

@@ -34,6 +34,17 @@ class SubwaySystem:
 
         self.routes = routes
 
+    def lookup_route(self, route_name, borough):
+        if route_name == "S":
+            if borough == "Q":
+                return self.get_route("H")
+            elif borough == "Bk":
+                return self.get_route("FS")
+            elif borough == "M":
+                return self.get_route("GS")
+        else:
+            return self.get_route(route_name)
+
     def load_stations(self, path, file_name):
 
         # Build full path to file
@@ -46,6 +57,10 @@ class SubwaySystem:
         # Filter out staten island stations
         data = data.loc[data["borough"] != "SI"]
 
+        # Convert station IDs to strings (instead of int)
+        data["station_id"] = data["station_id"].apply(str)
+        data["complex_id"] = data["complex_id"].apply(str)
+
         stations = {}
         stop_map = {}
         complex_map = {}
@@ -54,16 +69,23 @@ class SubwaySystem:
 
         for idx, row in data.iterrows():
 
-            station_id = str(row["station_id"])
+            station_id = row["station_id"]
             stop_id = row["gtfs_stop_id"]
-            complex_id = str(row["complex_id"])
+            complex_id = row["complex_id"]
 
             stop_map[stop_id] = station_id
 
-            if station_id not in stations:
+            # Build set of routes stopping at this station
+            borough = row["borough"]
+            routes = {self.lookup_route(route_id, borough) for route_id in row["daytime_routes"].split()}
+
+            if station_id in stations:
+                stations[station_id].add_routes(routes)
+            else:
+
                 station = SubwayStation(station_id, row["stop_name"],
-                                        row["latitude"], row["longitude"], row["borough"],
-                                        row["structure"], row["line"], row["division"])
+                                        row["latitude"], row["longitude"], borough,
+                                        row["structure"], row["line"], row["division"], routes)
 
                 # Run station filter
                 if station_filter(station):

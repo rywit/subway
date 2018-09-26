@@ -6,7 +6,7 @@ import json
 def main():
 
     def station_filter(station):
-        return station.get_borough() == "Bk"
+        return station.get_division() == "IRT"
 
     # Load the data from disk
     system = SubwayLinkSystem("data", station_filter)
@@ -18,13 +18,14 @@ def main():
 
     stations = [system.get_station(station_id) for station_id in station_ids]
 
-    ride = SubwayRide.build_ride_from_links(stations, DistanceType.Segments)
+    for station in stations:
+        print("%s %s: %s" % (station.get_id(), station.get_borough(), station))
 
-    ride.simplify_ride()
+#    ride = SubwayRide.build_ride_from_links(stations, DistanceType.Segments)
 
-    print("----------------")
-    print(ride.get_ride_summary())
-    print(ride.print())
+    # print("----------------")
+    # print(ride.get_ride_summary())
+    # print(ride.print())
 
 
 if __name__ == "__main__":
