@@ -19,6 +19,7 @@ class SubwayStop:
 
     def add_ride_segment(self, ride_seg):
         self.ride_segments.add(ride_seg)
+        self.get_station().add_connecting_ride_station(ride_seg.get_to_station())
         return self
 
     def get_ride_segments(self):
@@ -42,6 +43,7 @@ class SubwayStop:
 
     def add_station_transfer(self, transfer):
         self.station_transfers.add(transfer)
+        self.get_station().add_connecting_transfer_station(transfer.get_to_station())
         return self
 
     def get_station_transfer_segments(self):

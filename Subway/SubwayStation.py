@@ -17,6 +17,9 @@ class SubwayStation:
         self.stops = set()
         self.distances = {}
         self.paths = {}
+        self.connecting_stations = set()
+        self.connecting_ride_stations = set()
+        self.connecting_transfer_stations = set()
 
     def get_id(self):
         return self.station_id
@@ -56,26 +59,23 @@ class SubwayStation:
         return self.stops
 
     def get_connecting_stations(self):
-        return self.get_connecting_ride_stations() | self.get_connecting_transfer_stations()
+        return self.connecting_stations
+
+    def add_connecting_ride_station(self, station):
+        self.connecting_ride_stations.add(station)
+        self.connecting_stations.add(station)
+        return self
 
     def get_connecting_ride_stations(self):
-        stations = set()
+        return self.connecting_ride_stations
 
-        for stop in self.get_stops():
-            for conn in stop.get_ride_segments():
-                stations.add(conn.get_to_station())
-
-        return stations
+    def add_connecting_transfer_station(self, station):
+        self.connecting_transfer_stations.add(station)
+        self.connecting_stations.add(station)
+        return self
 
     def get_connecting_transfer_stations(self):
-
-        stations = set()
-
-        for stop in self.get_stops():
-            for trans in stop.get_station_transfer_segments():
-                stations.add(trans.get_to_station())
-
-        return stations
+        return self.connecting_transfer_stations
 
     def get_segment_to_station(self, to_station):
         for from_stop in self.get_stops():

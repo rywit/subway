@@ -2,8 +2,9 @@ Station set: All Brooklyn
 Objective: longest ride without visiting same station twice
 Cannot transfer twice in a row
 
-Total rides: 22878340
+Total rides: 22,878,340
 Longest: 124
+
 New Lots Av (352)
 Van Siclen Av (351)
 Pennsylvania Av (350)
@@ -135,8 +136,9 @@ Station set: All Queens
 Objective: longest ride without visiting same station twice
 Cannot transfer twice in a row
 
-Total rides: 5898
+Total rides: 5,898
 Longest: 40
+
 Flushing - Main St (447)
 Mets - Willets Point (448)
 111 St (449)
@@ -184,8 +186,9 @@ Station set: All Bronx
 Objective: longest ride without visiting same station twice
 Cannot transfer twice in a row
 
-Total rides: 3855
+Total rides: 3,855
 Longest: 34
+
 Woodlawn (378)
 Mosholu Pkwy (379)
 Bedford Park Blvd - Lehman College (380)
@@ -226,10 +229,13 @@ Wakefield - 241 St (416)
 Station set: All Brooklyn and Queens
 Objective: longest ride without visiting same station twice
 Cannot transfer twice in a row
-(Only tested terminal stations)
+(Max 10 transfers)
 
-Total rides: 19781579
+Total rides: 208,422,022
+             209,187,064
+             209,232,816
 Longest: 165
+
 Far Rockaway - Mott Av (209)
 Beach 25 St (208)
 Beach 36 St (207)
@@ -395,3 +401,128 @@ Bay Ridge Av (36)
 77 St (37)
 86 St (38)
 Bay Ridge - 95 St (39)
+
+
+###############################################
+
+Station set: All Manhattan
+Objective: longest ride without visiting same station twice
+Cannot transfer twice in a row
+
+Longest: 115
+
+Broad St (107)
+Fulton St (106)
+Chambers St (105)
+Canal St (104)
+Bowery (103)
+Essex St (102)
+Delancey St (233)
+2 Av (232)
+Broadway-Lafayette St (230)
+Bleecker St (408)
+Spring St (409)
+Canal St (410)
+Brooklyn Bridge - City Hall (411)
+Fulton St (412)
+Fulton St (172)
+Chambers St (170)
+Canal St (169)
+Spring St (168)
+W 4 St (167)
+14 St (229)
+23 St (228)
+34 St - Herald Sq (227)
+42 St - Bryant Pk (226)
+5 Av (466)
+Times Sq - 42 St (467)
+Times Sq - 42 St (468)
+Grand Central - 42 St (469)
+Grand Central - 42 St (402)
+33 St (403)
+28 St (404)
+23 St (405)
+14 St - Union Sq (406)
+Union Sq - 14 St (117)
+6 Av (116)
+8 Av (115)
+14 St (166)
+23 St (165)
+34 St - Penn Station (164)
+42 St - Port Authority Bus Terminal (163)
+50 St (162)
+7 Av (277)
+59 St - Columbus Circle (161)
+72 St (160)
+81 St - Museum of Natural History (159)
+86 St (158)
+96 St (157)
+103 St (156)
+Cathedral Pkwy (110 St) (155)
+116 St (154)
+125 St (153)
+135 St (152)
+145 St (151)
+155 St (150)
+163 St - Amsterdam Av (149)
+168 St (148)
+168 St - Washington Hts (302)
+157 St (303)
+145 St (304)
+137 St - City College (305)
+125 St (306)
+116 St - Columbia University (307)
+Cathedral Pkwy (308)
+103 St (309)
+96 St (310)
+86 St (311)
+79 St (312)
+72 St (313)
+66 St - Lincoln Center (314)
+59 St - Columbus Circle (315)
+50 St (316)
+Times Sq - 42 St (317)
+34 St - Penn Station (318)
+28 St (319)
+23 St (320)
+18 St (321)
+14 St (322)
+Christopher St - Sheridan Sq (323)
+Houston St (324)
+Canal St (325)
+Franklin St (326)
+Chambers St (327)
+Cortlandt St (328)
+Rector St (329)
+South Ferry (330)
+Whitehall St (23)
+Rector St (22)
+Cortlandt St (21)
+City Hall (20)
+Canal St (18)
+Prince St (17)
+8 St - NYU (16)
+14 St - Union Sq (15)
+23 St (14)
+28 St (13)
+34 St - Herald Sq (12)
+Times Sq - 42 St (11)
+49 St (10)
+57 St - 7 Av (9)
+5 Av/59 St (8)
+Lexington Av/59 St (7)
+Lexington Av/63 St (223)
+57 St (224)
+47-50 Sts - Rockefeller Ctr (225)
+5 Av/53 St (276)
+Lexington Av/53 St (275)
+51 St (401)
+59 St (400)
+68 St - Hunter College (399)
+77 St (398)
+86 St (397)
+96 St (396)
+103 St (395)
+110 St (394)
+116 St (393)
+125 St (392)

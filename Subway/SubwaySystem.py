@@ -57,10 +57,6 @@ class SubwaySystem:
         # Filter out staten island stations
         data = data.loc[data["borough"] != "SI"]
 
-        # Convert station IDs to strings (instead of int)
-        data["station_id"] = data["station_id"].apply(str)
-        data["complex_id"] = data["complex_id"].apply(str)
-
         stations = {}
         stop_map = {}
         complex_map = {}
@@ -230,10 +226,6 @@ class SubwaySystem:
         print("Loading stop distance data from '%s'" % full_path)
         data = pd.read_csv(full_path)
 
-        # Convert station IDs to strings (instead of int)
-        data["from_station_id"] = data["from_station_id"].apply(str)
-        data["to_station_id"] = data["to_station_id"].apply(str)
-
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
 
@@ -253,9 +245,6 @@ class SubwaySystem:
         # Read data from disk
         print("Loading ridership data from '%s'" % full_path)
         data = pd.read_csv(full_path)
-
-        # Convert complex IDs to strings (instead of int)
-        data["complex_id"] = data["complex_id"].apply(str)
 
         # Iterate through each row in the data set
         for idx, row in data.iterrows():
