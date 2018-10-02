@@ -16,57 +16,49 @@ colors <- trips %>%
 shape <- shapes %>%
   inner_join( colors, by = "shape_id" )
 
-manh <- stations %>%
-  filter( borough == "M" ) %>%
+station.set <- stations %>%
+  filter( borough %in% c( "Bk", "Q" ) ) %>%
   rename( "lat" = "latitude", "lon" = "longitude" ) %>%
   select( lat, lon, stop_name )
 
-qmplot( lon, lat, data = manh, maptype = "toner-lite", color = I( "black" )) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.1, colour = "#EE352E" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.2.a, colour = "#EE352E" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.2.b, colour = "#EE352E" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.3.a, colour = "#EE352E" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.3.b, colour = "#EE352E" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.4, colour = "#00933C" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.5.a, colour = "#00933C" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.5.b, colour = "#00933C" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.6, colour = "#00933C" ) +
-  geom_path(aes( x = x, y = y ), size = 2, alpha = 0.5, data = route.7, colour = "#B933AD" ) +
-  #  geom_segment(aes( x = x, y = y, xend = xend, yend = yend ), size = 2, alpha = 0.5, data = blue.paths, colour = "#2850AD", linejoin="mitre", lineend="butt" ) +
-#  geom_segment(aes( x = x, y = y, xend = xend, yend = yend ), size = 1.5, alpha = 0.5, data = yellow.paths, colour = "#FCCC0A" ) +
-#  geom_segment(aes( x = x, y = y, xend = xend, yend = yend ), size = 1.5, alpha = 0.5, data = orange.paths, colour = "#FF6319" ) +
-#  geom_segment(aes( x = x, y = y, xend = xend, yend = yend ), size = 1.5, alpha = 0.5, data = brown.paths, colour = "#996633" ) +
-#  geom_segment(aes( x = x, y = y, xend = xend, yend = yend ), size = 1.5, alpha = 0.5, data = grey.paths, colour = "#A7A9AC" ) +
-  geom_point( aes( x = lon, y = lat ), data = manh, colour = "#333333", size = 1.5, alpha = 0.75 )
+## Function to add stations to plot
+add.stations <- function( g, stations, size = 1.5, alpha = 0.5 ) {
+  p + geom_point( aes( x = lon, y = lat ), data = stations, colour = "#333333", size = size, alpha = alpha )
+}
+  
+## Function to add colored routes to a plot
+add.routes <- function(g, size = 1.5, alpha = 0.5) {
 
-## 1 Route 1..N03R
-## 2 Route 2..N01R
-## 3 Route 3..N01R
-
-## 4 Route 4..N01R
-## 5 Route 5..N71R
-## 6 Route 6..N01R
-## 7 Route 7..N97R
-
-## Route A: A..N54R
-## Route A: A..N55R
-## Route C: C..N04R
-## Route E: E..N66R
-
-## Route B: B..N46R
-## Route D: D..N07R
-## Route F: F..N69R
-## Route M: M..N20R
-
-## Route N: N..N20R
-## Route R: R..N93R
-## Route Q: Q..N16R
-## Route W: NA
-
-## Route L: L..N01R
-## Route J: J..N41R
-
-## Rockaway: H..N21R
+  g +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.1, colour = "#EE352E" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.2.a, colour = "#EE352E" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.2.b, colour = "#EE352E" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.3.a, colour = "#EE352E" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.3.b, colour = "#EE352E" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.4, colour = "#00933C" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.5.a, colour = "#00933C" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.5.b, colour = "#00933C" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.6, colour = "#00933C" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.7, colour = "#B933AD" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.n, colour = "#FCCC0A" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.r.a, colour = "#FCCC0A" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.r.b, colour = "#FCCC0A" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.q.a, colour = "#FCCC0A" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.q.b, colour = "#FCCC0A" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.a.a, colour = "#2850AD" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.a.b, colour = "#2850AD" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.e.a, colour = "#2850AD" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.e.b, colour = "#2850AD" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.b, colour = "#FF6319" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.d, colour = "#FF6319" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.f.a, colour = "#FF6319" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.f.b, colour = "#FF6319" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.m, colour = "#FF6319" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.l, colour = "#A7A9AC" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.j, colour = "#996633" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.g, colour = "#6CBE45" ) +
+    geom_path(aes( x = x, y = y ), size = size, alpha = alpha, data = route.h, colour = "#808183" )
+}
 
 route.1 <- shape %>% filter( shape_id == "1..N03R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
@@ -104,4 +96,78 @@ route.6 <- shape %>% filter( shape_id == "6..N01R") %>%
 
 route.7 <- shape %>% filter( shape_id == "7..N97R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.n <- shape %>% filter( shape_id == "N..N20R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.r.a <- shape %>% filter( shape_id == "R..N93R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence <= 20 )
+
+route.r.b <- shape %>% filter( shape_id == "R..N93R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence >= 819 )
+
+route.q.a <- shape %>% filter( shape_id == "Q..N16R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence <= 381 )
+
+route.q.b <- shape %>% filter( shape_id == "Q..N16R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence >= 573 )
+
+route.a.a <- shape %>% filter( shape_id == "A..N54R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.a.b <- shape %>% filter( shape_id == "A..N55R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence <= 261 )
+
+route.e.a <- shape %>% filter( shape_id == "E..N66R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence <= 18 )
+
+route.e.b <- shape %>% filter( shape_id == "E..N66R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence >= 108 )
+
+route.d <- shape %>% filter( shape_id == "D..N07R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.b <- shape %>% filter( shape_id == "B..N46R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence <= 299 )
+
+route.f.a <- shape %>% filter( shape_id == "F..N69R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.f.b <- shape %>% filter( shape_id == "F..N69R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence >= 697 )
+
+route.m <- shape %>% filter( shape_id == "M..N20R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  filter( shape_pt_sequence <= 282 )
+
+route.l <- shape %>% filter( shape_id == "L..N01R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.j <- shape %>% filter( shape_id == "J..N41R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.g <- shape %>% filter( shape_id == "G..N14R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+route.h <- shape %>% filter( shape_id == "H..N21R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+
+
+## Build charts
+
+p <- qmplot( lon, lat, data = manh, maptype = "toner-lite", geom = "blank" )
+p <- add.routes( p, size = 1, alpha = 0.6 )
+p <- add.stations( p, station.set, size = 1.5, alpha = 0.75 )
+
+ggsave("testplot.jpg", p, height = 6, width = 7, units = "in" )
+
 
