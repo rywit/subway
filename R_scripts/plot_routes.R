@@ -18,7 +18,7 @@ shape <- shapes %>%
 
 station.set <- stations %>%
   filter( borough != "SI" ) %>%
-#  filter( borough %in% c( "Bx" ) ) %>%
+  filter( borough %in% c( "M" ) ) %>%
   rename( "lat" = "latitude", "lon" = "longitude" ) %>%
   select( lat, lon, stop_name )
 
@@ -72,7 +72,11 @@ route.2.a <- shape %>% filter( shape_id == "2..N01R") %>%
 
 route.2.b <- shape %>% filter( shape_id == "2..N01R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
-  filter( shape_pt_sequence >= 296 )
+  filter( shape_pt_sequence >= 296 ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 360, x - 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 360, y + 0.0005, y ) ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 495, x + 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 495, y - 0.0005, y ))
 
 route.3.a <- shape %>% filter( shape_id == "3..N01R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
@@ -91,7 +95,11 @@ route.5.a <- shape %>% filter( shape_id == "5..N71R") %>%
 
 route.5.b <- shape %>% filter( shape_id == "5..N71R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
-  filter( shape_pt_sequence >= 404 )
+  filter( shape_pt_sequence >= 404 ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 404, x + 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 404, y - 0.0005, y ) ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 590, x - 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 590, y + 0.0005, y ) )
 
 route.6 <- shape %>% filter( shape_id == "6..N01R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
@@ -120,7 +128,11 @@ route.q.b <- shape %>% filter( shape_id == "Q..N16R") %>%
   filter( shape_pt_sequence >= 573 )
 
 route.a.a <- shape %>% filter( shape_id == "A..N54R") %>%
-  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" )
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 597, x - 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 597, y + 0.0005, y ) ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 720, x + 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 720, y - 0.0005, y ) )
 
 route.a.b <- shape %>% filter( shape_id == "A..N55R") %>%
   rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
@@ -178,6 +190,12 @@ route.h <- shape %>% filter( shape_id == "H..N21R") %>%
 
 
 ## Build charts
+route.d <- shape %>% filter( shape_id == "D..N07R") %>%
+  rename( "y" = "shape_pt_lat", "x" = "shape_pt_lon" ) %>%
+  mutate( x = ifelse( shape_pt_sequence > 530, x + 0.0005, x ),
+          y = ifelse( shape_pt_sequence > 530, y - 0.0005, y ) )
+  
+
 p <- qmplot( lon, lat, data = station.set, maptype = "toner-lite", geom = "blank" )
 p <- add.routes( p, size = 2, alpha = 0.6 )
 p <- add.stations( p, station.set, size = 1.5, alpha = 0.75 )
