@@ -1,8 +1,9 @@
 from Subway import *
 import collections
+import argparse
 
 
-def build_longest_path(start_station_id, start_loc, reset_limit, ride_connections, trans_connections):
+def build_longest_path(start_station_id, start_loc, ride_connections, trans_connections):
 
     max_visited = 0
 
@@ -13,7 +14,7 @@ def build_longest_path(start_station_id, start_loc, reset_limit, ride_connection
 
     while q:
 
-        cur = q.popleft() if len(q) > reset_limit else q.pop()
+        cur = q.pop()
         num_paths += 1
 
         cur_station_id = cur[0]
@@ -23,9 +24,6 @@ def build_longest_path(start_station_id, start_loc, reset_limit, ride_connection
 
         if num_visited > max_visited:
             max_visited = num_visited
-
-            if max_visited > 110:
-                print("New longest: %d" % max_visited)
 
         for conn_station_id, loc in ride_connections[cur_station_id]:
             if not visited & loc:
@@ -44,14 +42,25 @@ def build_longest_path(start_station_id, start_loc, reset_limit, ride_connection
     return max_visited, num_paths
 
 
-def main():
+def parse_args():
+    parser = argparse.ArgumentParser(description="Brute-force route-calculating script")
 
-    def station_filter(station):
-#        return True
-        return station.get_borough() == "M"
+    # Parameter for filtering by borough (M, Bx, Q, Bk)
+    parser.add_argument('-b', action='append', dest='borough',
+                        default=[], help='Which borough(s) to operate on')
 
-    # Load the data from disk
-    system = SubwayLinkSystem("data", station_filter)
+    # Parameter for filtering by station ID
+    parser.add_argument('-s', action='append', dest='station_ids', type=int,
+                        default=[], help='Which station(s) to operate on')
+
+    # Parameter for writing output to file
+    parser.add_argument('-f', action='store', dest='out_file',
+                        default="results/brute_force.txt", help='Where to write results')
+
+    return parser.parse_args()
+
+
+def build_connection_maps(system):
 
     ride_connections = {}
     trans_connections = {}
@@ -67,31 +76,53 @@ def main():
     for station in system.get_stations():
         station_id = station.get_id()
 
-        ride_connections[station_id] = [(conn.get_id(), 1 << id_map[conn.get_id()]) for conn in station.get_connecting_ride_stations()]
-        trans_connections[station_id] = [(conn.get_id(), 1 << id_map[conn.get_id()]) for conn in station.get_connecting_transfer_stations()]
+        rides = station.get_connecting_ride_stations()
+        trans = station.get_connecting_transfer_stations()
 
-    total_paths = 0
-    longest = 0
+        ride_connections[station_id] = [(conn.get_id(), 1 << id_map[conn.get_id()]) for conn in rides]
+        trans_connections[station_id] = [(conn.get_id(), 1 << id_map[conn.get_id()]) for conn in trans]
 
-    station_set = [station for station in system.get_stations() if station.get_id() > 100]
+    return id_map, ride_connections, trans_connections
 
-    for station in sorted(station_set, key=lambda x: x.get_id()):
-        reset_limit = 100000
+
+def get_station_set(system, args):
+
+    if len(args.station_ids):
+        return [station for station in system.get_stations() if station.get_id() in args.station_ids]
+
+    return system.get_stations()
+
+
+def main():
+
+    args = parse_args()
+
+    def station_filter(station):
+        for borough in args.borough:
+            if station.get_borough() == borough:
+                return True
+
+        return False
+
+    # Load the data from disk
+    system = SubwayLinkSystem("data", station_filter)
+
+    # Build maps to make connection lookups faster
+    id_map, ride_connections, trans_connections = build_connection_maps(system)
+
+    station_set = get_station_set(system, args)
+
+    for station in station_set:
 
         print(station)
         station_id = station.get_id()
 
-        longest_path, num_paths = build_longest_path(station_id, 1 << id_map[station_id], reset_limit, ride_connections, trans_connections)
-
-        total_paths += num_paths
+        longest_path, num_paths = build_longest_path(station_id, 1 << id_map[station_id], ride_connections, trans_connections)
 
         print("%s: %d" % (station, longest_path))
 
-        if longest_path > longest:
-            longest = longest_path
-            print("---------------------")
-
-    print("Paths: %d, Longest: %d" % (total_paths, longest))
+        with open(args.out_file, "a") as out_file:
+            out_file.write("%s (%d): %d, %d\n" % (station.get_name(), station.get_id(), longest_path, num_paths))
 
 
 if __name__ == "__main__":
