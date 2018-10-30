@@ -64,7 +64,7 @@ class Path {
     curStation = cur;
     justTransferred = true;
 
-    visited = new bool[473]();
+    visited = new bool[478]();
     visited[cur->getStationNumber()] = true;
 
     numVisited = 1;
@@ -75,8 +75,8 @@ class Path {
     curStation = cur;
     justTransferred = trans;
 
-    visited = new bool[473]();
-    memcpy(visited, visit, 473);
+    visited = new bool[478]();
+    memcpy(visited, visit, 478);
 
     visited[cur->getStationNumber()] = true;
 
@@ -89,8 +89,8 @@ class Path {
     justTransferred = other.justTransferred;
     numVisited = other.numVisited;
 
-    visited = new bool[473];
-    memcpy(visited, other.visited, 473);
+    visited = new bool[478];
+    memcpy(visited, other.visited, 478);
   }
 
   ~Path() {
@@ -157,6 +157,10 @@ Results calcLongest(Station * startStation)
 
     numChecked++;
 
+    if ( numChecked % 100000 == 0 ) {
+      cout << "Checked: " << numChecked << "\n";
+    }
+
     if ( curPath.getNumVisited() > maxLength ) {
       maxLength = curPath.getNumVisited();
     }
@@ -222,7 +226,11 @@ vector< vector<int> > parseCSV(string fileName) {
 
 void loadRideConnections(string fileName, map<int, Station *> stations) {
 
+  cout << "Loading ride data from " << fileName << "\n";
+
   vector< vector<int> > links = parseCSV( fileName );
+
+  cout << "Loaded " << links.size() << " links\n";
 
   for ( vector< vector<int> >::iterator it = links.begin(); it != links.end(); it++ ) {
     vector<int> ids = *it;
@@ -236,10 +244,16 @@ void loadRideConnections(string fileName, map<int, Station *> stations) {
 
 void loadTransferConnections(string fileName, map<int, Station *> stations) {
 
+  cout << "Loading transfer data from " << fileName << "\n";
+
   vector< vector<int> > links = parseCSV( fileName );
+
+  cout << "Loaded " << links.size() << " transfers\n";
 
   for ( vector< vector<int> >::iterator it = links.begin(); it != links.end(); it++ ) {
     vector<int> ids = *it;
+
+    cout << "Found transfer from " << ids[0] << " to " << ids[1] << "\n";
 
     Station * station1 = stations[ids[0]];
     Station * station2 = stations[ids[1]];
@@ -252,12 +266,12 @@ int main()
 { 
   map<int, Station *> stations;
 
-  for ( int i = 1; i <= 472; i++ ) {
+  for ( int i = 1; i <= 477; i++ ) {
     stations.insert(pair<int, Station *>(i, new Station(i)));
   }
 
-  loadRideConnections( "/u1/rwitko/links.csv", stations );
-  loadTransferConnections( "/u1/rwitko/trans.csv", stations );
+  loadRideConnections( "data/links.csv", stations );
+  loadTransferConnections( "data/trans.csv", stations );
 
   int totalChecked = 0;
   int totalLongest = 0;
