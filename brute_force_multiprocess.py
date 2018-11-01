@@ -99,6 +99,10 @@ def parse_args():
     parser.add_argument('-f', action='store', dest='out_file',
                         default="results/brute_force.txt", help='Where to write results')
 
+    # Parameter for writing output to file
+    parser.add_argument('-cpu', action='store', dest='cpu', type=int,
+                        default=4, help='How many CPUs to use')
+
     return parser.parse_args()
 
 
@@ -138,6 +142,7 @@ def get_station_set(system, args):
 def main():
 
     args = parse_args()
+    cpus = args.cpu
 
     def station_filter(station):
         for borough in args.borough:
@@ -165,7 +170,7 @@ def main():
         # Shuffle queue and partition
         random.shuffle(q)
         q_list = list(q)
-        sets = [q_list[i::4] for i in range(4)]
+        sets = [q_list[i::cpus] for i in range(cpus)]
 
         # Setup a list of processes that we want to run
         processes = [mp.Process(target=build_longest_path, args=(x, ride_connections, trans_connections, output)) for x in sets]
